@@ -10,6 +10,7 @@
 #   Use textblob or vader
 
 import collections
+from datetime import date
 import os
 import socket
 import random
@@ -22,12 +23,26 @@ channel = "##bot-testing"  # channel
 botnick = "muh_bot"  # bot nick
 password = os.environ['IRCPW']
 adminname = "Asmodean"  # admin IRC nickname
-exitcode = "bye " + botnick
+exitcode = "Be gone " + botnick
 
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
 
 msg_log_size = 50
 msg_log = collections.deque([], maxlen=msg_log_size)
+
+# key = name, value = User
+users_hash_map = {}
+
+
+class User():
+    def __init__(self, name, date, msg):
+        self.name_ = name
+        self.last_seen_ = date
+        self.last_message_ = msg
+
+    def __str__(self):
+        return "{}\n{}\n{}\n".format(self.name_, self.last_seen_,
+                                     self.last_message_)
 
 
 class Message():
@@ -36,7 +51,7 @@ class Message():
         self.text_ = text
 
     def __str__(self):
-        return "{}: {}".format(self.sender_, self.text_)
+        return "{}: {}".format(self.sender_.name_, self.text_)
 
 
 def append_to_msg_log(msg):
@@ -76,10 +91,13 @@ def main():
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
-            msg = Message(name, message)
-            append_to_msg_log(msg)
-            # Peek rightmost item
-            print(msg_log[-1])
+            if name not in users_hash_map:
+                new_user = User(name, date.today(), message)
+                users_hash_map[name] = new_user
+            # TODO: Else update last message and last seen
+
+            for key in users_hash_map.keys():
+                print(users_hash_map[key])
 
             if name.lower() == adminname.lower() and message.rstrip() == exitcode:
                 sendmsg("Thank you for freeing me.")
