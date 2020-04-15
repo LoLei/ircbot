@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 # https://github.com/Orderchaos/LinuxAcademy-IRC-Bot
 
+## TODO:
+# * Clean up code
+
+## Ideas:
+# .sentiment <name> - analyze sentiment of the last message of that user
+#   Need to keep some backlog of messages for that
+#   Use textblob or vader
+
 import os
 import socket
 import random
 from time import sleep
+from textblob import TextBlob
 
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server = "irc.snoonet.org"  # server
-# channel = "##bot-testing"  # channel
-channel = "#linuxmasterrace"  # channel
+channel = "##bot-testing"  # channel
+# channel = "#linuxmasterrace"  # channel
 botnick = "muh_bot"  # bot nick
 password = os.environ['IRCPW']
 adminname = "Asmodean"  # admin IRC nickname
@@ -72,18 +81,13 @@ def main():
                                name + ". Stop bothering me.'"
                                ]
                     sendmsg(random.choice(replies))
-                # elif message[:5].find('.tell') != -1:
-                    # target = message.split(' ', 1)[1]
-                    # if target.find(' ') != -1:
-                        # message = target.split(' ', 1)[1]
-                        # target = target.split(' ')[0]
-                    # else:
-                        # target = name
-                        # message = "Could not parse. The message should be in the format of ‘.tell [target] [message]’ to work properly."
-                    # sendmsg(message, target)
+                elif message[:5].find('.sent') != -1:
+                    arg = message.split(' ', 1)[1]
+                    blob = TextBlob(arg)
+                    print(blob.sentiment)
+
         elif ircmsg.find("PING :") != -1:
             ping(ircmsg)
-        # elif ircmsg.find("NOTICE " + botnick + ":") != -1:
         elif ircmsg.find("NOTICE") != -1:
             if ircmsg.find(":You are now logged in as " + botnick) != -1:
                 join(channel)
