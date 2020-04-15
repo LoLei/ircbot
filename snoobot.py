@@ -9,10 +9,10 @@
 #   Need to keep some backlog of messages for that
 #   Use textblob or vader
 
+import collections
 import os
 import socket
 import random
-from time import sleep
 from textblob import TextBlob
 
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,7 +23,24 @@ botnick = "muh_bot"  # bot nick
 password = os.environ['IRCPW']
 adminname = "Asmodean"  # admin IRC nickname
 exitcode = "bye " + botnick
+
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
+
+msg_log_size = 50
+msg_log = collections.deque([], maxlen=msg_log_size)
+
+
+class Message():
+    def __init__(self, sender, text):
+        self.sender_ = sender
+        self.text_ = text
+
+    def __str__(self):
+        return "{}: {}".format(self.sender_, self.text_)
+
+
+def append_to_msg_log(msg):
+    msg_log.append(msg)
 
 
 def connect():
@@ -58,6 +75,11 @@ def main():
         if ircmsg.find("PRIVMSG") != -1:
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
+
+            msg = Message(name, message)
+            append_to_msg_log(msg)
+            # Peek rightmost item
+            print(msg_log[-1])
 
             if name.lower() == adminname.lower() and message.rstrip() == exitcode:
                 sendmsg("Thank you for freeing me.")
