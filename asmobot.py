@@ -12,6 +12,7 @@ botnick = "muh_bot"  # bot nick
 password = os.environ['IRCPW']
 adminname = "Asmodean"  # admin IRC nickname
 exitcode = "bye " + botnick
+termrows, termcolumns = os.popen('stty size', 'r').read().split()
 
 
 def connect():
@@ -26,7 +27,6 @@ def join(chan):
 
 
 def ping(msg):
-    print("got ping: ", ping)
     ircsock.send(bytes('PONG ' + msg.split()[1] + '\r\n', "UTF-8"))
 
 
@@ -35,15 +35,13 @@ def sendmsg(msg, target=channel):
 
 
 def main():
-    print("calling connect")
     connect()
-    print("calling join")
-    join(channel)
-    print("starting while run")
     while True:
         ircmsg = ircsock.recv(2048).decode("UTF-8")
         ircmsg = ircmsg.strip('\n\r')
-        print("ircmsg: ")
+        sepmsg = "ircmsg: "
+        print(sepmsg, end='')
+        print("#"*(int(termcolumns)-len(sepmsg)))
         print(ircmsg)
 
         if ircmsg.find("PRIVMSG") != -1:
@@ -67,11 +65,13 @@ def main():
                 ircsock.send(bytes("QUIT n", "UTF-8"))
                 return
         elif ircmsg.find("PING :") != -1:
-            print("PING?!?!")
             ping(ircmsg)
+        # elif ircmsg.find("NOTICE " + botnick + ":") != -1:
+        elif ircmsg.find("NOTICE") != -1:
+            if ircmsg.find(":You are now logged in as " + botnick) != -1:
+                join(channel)
         elif ircmsg.find("ERROR") != -1:
-            print("ERROR?!?!")
-            ping(ircmsg)
+            return
 
 
 if __name__ == "__main__":
