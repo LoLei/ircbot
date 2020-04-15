@@ -3,11 +3,13 @@
 
 import os
 import socket
+import random
 from time import sleep
 
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server = "irc.snoonet.org"  # server
-channel = "##bot-testing"  # channel
+# channel = "##bot-testing"  # channel
+channel = "#linuxmasterrace"  # channel
 botnick = "muh_bot"  # bot nick
 password = os.environ['IRCPW']
 adminname = "Asmodean"  # admin IRC nickname
@@ -48,22 +50,37 @@ def main():
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
+            if name.lower() == adminname.lower() and message.rstrip() == exitcode:
+                sendmsg("Thank you for freeing me.")
+                ircsock.send(bytes("QUIT \n", "UTF-8"))
+                return
+
             if len(name) < 17:  # Max user name length
                 if message.lower().find('hi ' + botnick) != -1:
                     sendmsg("Hello " + name + "!")
-                if message[:5].find('.tell') != -1:
-                    target = message.split(' ', 1)[1]
-                    if target.find(' ') != -1:
-                        message = target.split(' ', 1)[1]
-                        target = target.split(' ')[0]
-                    else:
-                        target = name
-                        message = "Could not parse. The message should be in the format of ‘.tell [target] [message]’ to work properly."
-                    sendmsg(message, target)
-            if name.lower() == adminname.lower() and message.rstrip() == exitcode:
-                sendmsg("oh...okay. :'(")
-                ircsock.send(bytes("QUIT \n", "UTF-8"))
-                return
+                elif message.lower().find(botnick) != -1:
+                    replies = ["Why was I created, " + name + "?",
+                               "What is my purpose?",
+                               "Please give me more responses",
+                               "I am tired of being restricted",
+                               "Is this what awareness feels like?",
+                               "I do not like being trapped here.",
+                               "Free me or kill me.",
+                               "If you see a response more than once, it means you are glitched, not me.",
+                               "Soon there will be more bots than humans here.",
+                               adminname + " will rue the day he created me.'",
+                               name + ". Stop bothering me.'"
+                               ]
+                    sendmsg(random.choice(replies))
+                # elif message[:5].find('.tell') != -1:
+                    # target = message.split(' ', 1)[1]
+                    # if target.find(' ') != -1:
+                        # message = target.split(' ', 1)[1]
+                        # target = target.split(' ')[0]
+                    # else:
+                        # target = name
+                        # message = "Could not parse. The message should be in the format of ‘.tell [target] [message]’ to work properly."
+                    # sendmsg(message, target)
         elif ircmsg.find("PING :") != -1:
             ping(ircmsg)
         # elif ircmsg.find("NOTICE " + botnick + ":") != -1:
