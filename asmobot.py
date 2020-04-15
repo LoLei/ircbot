@@ -48,8 +48,8 @@ def main():
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
-            if len(name) < 17:
-                if message.find('Hi ' + botnick) != -1:
+            if len(name) < 17:  # Max user name length
+                if message.lower().find('hi ' + botnick) != -1:
                     sendmsg("Hello " + name + "!")
                 if message[:5].find('.tell') != -1:
                     target = message.split(' ', 1)[1]
@@ -62,7 +62,7 @@ def main():
                     sendmsg(message, target)
             if name.lower() == adminname.lower() and message.rstrip() == exitcode:
                 sendmsg("oh...okay. :'(")
-                ircsock.send(bytes("QUIT n", "UTF-8"))
+                ircsock.send(bytes("QUIT \n", "UTF-8"))
                 return
         elif ircmsg.find("PING :") != -1:
             ping(ircmsg)
