@@ -125,6 +125,26 @@ def main():
                                ]
                     sendmsg(random.choice(replies))
 
+                elif message[:5].find('.last') != -1:
+                    try:
+                        arg = message.split(' ', 1)[1]
+                    except IndexError:
+                        sendmsg("I need a name.")
+                        continue
+
+                    if arg in users_hash_map:
+                        name = arg
+                        last_message = users_hash_map[arg].last_message_
+                        last_seen = users_hash_map[arg].last_seen_
+                        msg = ("{0}\'s last message: \"{1}\" at {2}. "
+                        "Do with that what you want. A timestamp is the most "
+                        "bot-readable format. Who cares about human readability "
+                        "anyway?").format(name, last_message, last_seen)
+                        print(msg)
+                        sendmsg(msg)
+                    else:
+                        sendmsg("I haven't encountered this user yet.")
+
                 elif message[:5].find('.sent') != -1:
                     arg = message.split(' ', 1)[1]
                     text = arg
@@ -133,7 +153,6 @@ def main():
                     # and that name is in the user log
                     if arg in users_hash_map:
                         text = users_hash_map[arg].last_message_
-                        print(text)
 
                     # Else just analyze the text as is
                     blob = TextBlob(text)
