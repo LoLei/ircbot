@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-
-# TODO:
-# * Clean up code
-
 import os
 import socket
 import time
 import random
 from textblob import TextBlob
+# Own
+from util import User
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -29,7 +26,7 @@ class IRCBot():
         self.ircsock_.connect((self.server_, 6667))
         self.ircsock_.send(bytes("PASS " + self.password_ + "\n", "UTF-8"))
         self.ircsock_.send(bytes("USER " + self.nick_ + " " + self.nick_ +
-                           " " + self.nick_ + ":snoobot .\n", "UTF-8"))
+                           " " + self.nick_ + ":snoobotasmo .\n", "UTF-8"))
         self.ircsock_.send(bytes("NICK " + self.nick_ + "\n", "UTF-8"))
 
     def join(self, chan):
@@ -144,30 +141,3 @@ class IRCBot():
                     self.join(self.channel_)
             elif ircmsg.find("ERROR") != -1:
                 return
-
-
-class User():
-    def __init__(self, name, timestamp, msg):
-        self.name_ = name
-        self.last_seen_ = timestamp
-        self.last_message_ = msg
-
-    def __str__(self):
-        return "{}\n{}\n{}\n".format(self.name_, self.last_seen_,
-                                     self.last_message_)
-
-
-def main():
-    server = "irc.snoonet.org"  # server
-    channel = "##bot-testing"  # channel
-    botnick = "muh_bot"  # bot nick
-    password = os.environ['IRCPW']
-    adminname = "Asmodean"  # admin IRC nickname
-    exitcode = "Be gone " + botnick
-
-    ircbot = IRCBot(server, channel, botnick, password, adminname, exitcode)
-    ircbot.run()
-
-
-if __name__ == "__main__":
-    main()
