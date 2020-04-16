@@ -142,14 +142,18 @@ class IRCBot():
                         pola_str = ""
                         if pola == 0.0:
                             pola_str = "neutral"
-                        elif pola < 0:
-                            pola_str = "negative"
-                            if pola <= -0.5:
-                                pola_str = "very " + pola_str
-                        elif pola > 0:
+                        elif 0.0 < pola <= 0.25:
+                            pola_str = "slightly positive"
+                        elif 0.25 < pola <= 0.75:
                             pola_str = "positive"
-                            if pola >= 0.5:
-                                pola_str = "very " + pola_str
+                        elif 0.75 < pola <= 1.0:
+                            pola_str = "very positive"
+                        elif 0.0 > pola >= -0.25:
+                            pola_str = "slightly negative"
+                        elif -0.25 > pola >= -0.75:
+                            pola_str = "negative"
+                        elif -0.75 > pola >= -1.0:
+                            pola_str = "very negative"
 
                         msg = "The text: \"{0}\" is {1}.".format(
                             text, pola_str)
