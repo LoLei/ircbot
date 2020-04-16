@@ -44,16 +44,6 @@ class User():
                                      self.last_message_)
 
 
-# Unused
-class Message():
-    def __init__(self, sender, text):
-        self.sender_ = sender
-        self.text_ = text
-
-    def __str__(self):
-        return "{}: {}".format(self.sender_.name_, self.text_)
-
-
 def connect():
     ircsock.connect((server, 6667))
     ircsock.send(bytes("PASS " + password + "\n", "UTF-8"))
