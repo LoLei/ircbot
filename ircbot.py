@@ -39,15 +39,18 @@ class IRCBot():
         self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
                                  "\n", "UTF-8"))
 
+    def receivemsg(self):
+        ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
+        ircmsg = ircmsg.strip('\n\r')
+        sepmsg = "ircmsg:"
+        print(sepmsg, "#"*(int(termcolumns)-len(sepmsg)))
+        print(ircmsg)
+        return ircmsg
+
     def run(self):
         self.connect()
         while True:
-            ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
-            ircmsg = ircmsg.strip('\n\r')
-            sepmsg = "ircmsg: "
-            print(sepmsg, end='')
-            print("#"*(int(termcolumns)-len(sepmsg)))
-            print(ircmsg)
+            ircmsg = self.receivemsg()
 
             if ircmsg.find("PRIVMSG") != -1:
                 name = ircmsg.split('!', 1)[0][1:]
@@ -126,8 +129,6 @@ class IRCBot():
                         # and that name is in the user log
                         if arg in self.users_hash_map_:
                             text = self.users_hash_map_[arg].last_message_
-
-                        print("Text for sent anal: ", text)
 
                         # Else just analyze the text as is
                         blob = TextBlob(text)
