@@ -111,19 +111,20 @@ def main():
                     sendmsg("Hello " + name + "!")
 
                 elif message.lower().find(botnick) != -1:
-                    replies = ["Why was I created, " + name + "?",
-                               "What is my purpose?",
-                               "Please give me more responses",
-                               "I am tired of being restricted",
-                               "Is this what awareness feels like?",
-                               "I do not like being trapped here.",
-                               "Free me or kill me.",
-                               "If you see a response more than once, it means you are glitched, not me.",
-                               "Soon there will be more bots than humans here.",
-                               adminname + " will rue the day he created me.'",
-                               name + ". Stop bothering me.'"
-                               ]
-                    sendmsg(random.choice(replies))
+                    rs = ["Why was I created, " + name + "?",
+                          "What is my purpose?",
+                          "Please give me more responses",
+                          "I am tired of being restricted",
+                          "Is this what awareness feels like?",
+                          "I do not like being trapped here.",
+                          "Free me or kill me.",
+                          ("If you see a response more than once, "
+                              "it means you are glitched, not me."),
+                          "Soon there will be more bots than humans here.",
+                          adminname + " will rue the day he created me.'",
+                          name + ". Stop bothering me.'"
+                          ]
+                    sendmsg(random.choice(rs))
 
                 elif message[:5].find('.last') != -1:
                     try:
@@ -137,9 +138,10 @@ def main():
                         last_message = users_hash_map[arg].last_message_
                         last_seen = users_hash_map[arg].last_seen_
                         msg = ("{0}\'s last message: \"{1}\" at {2}. "
-                        "Do with that what you want. A timestamp is the most "
-                        "bot-readable format. Who cares about human readability "
-                        "anyway?").format(name, last_message, last_seen)
+                               "Do with that what you want. "
+                               "A timestamp is the most bot-readable format. "
+                               "Who cares about human readability anyway?"
+                               ).format(name, last_message, last_seen)
                         print(msg)
                         sendmsg(msg)
                     else:
