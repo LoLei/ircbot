@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # https://github.com/Orderchaos/LinuxAcademy-IRC-Bot
 
-## TODO:
+# TODO:
 # * Clean up code
 
-## Ideas:
+# Ideas:
 # .sentiment <name> - analyze sentiment of the last message of that user
 #   Need to keep some backlog of messages for that
 #   Use textblob or vader
@@ -54,15 +54,12 @@ class Message():
         return "{}: {}".format(self.sender_.name_, self.text_)
 
 
-def append_to_msg_log(msg):
-    msg_log.append(msg)
-
-
 def connect():
     ircsock.connect((server, 6667))
     ircsock.send(bytes("PASS " + password + "\n", "UTF-8"))
-    ircsock.send(bytes("USER "+ botnick +" "+ botnick +" "+ botnick +":Just testing .\n", "UTF-8"))
-    ircsock.send(bytes("NICK "+ botnick +"\n", "UTF-8"))
+    ircsock.send(bytes("USER " + botnick + " " + botnick + " " + botnick +
+                       ":snoobot .\n", "UTF-8"))
+    ircsock.send(bytes("NICK " + botnick + "\n", "UTF-8"))
 
 
 def join(chan):
@@ -148,7 +145,11 @@ def main():
                         sendmsg("I haven't encountered this user yet.")
 
                 elif message[:5].find('.sent') != -1:
-                    arg = message.split(' ', 1)[1]
+                    try:
+                        arg = message.split(' ', 1)[1]
+                    except IndexError:
+                        sendmsg("I need a name or some text.")
+                        continue
                     text = arg
 
                     # Use last message of user if argument is user name,
@@ -156,9 +157,11 @@ def main():
                     if arg in users_hash_map:
                         text = users_hash_map[arg].last_message_
 
+                    print("Text for sent anal: ", text)
+
                     # Else just analyze the text as is
                     blob = TextBlob(text)
-                    print(blob.sentiment)
+                    sendmsg(str(blob.sentiment))
 
         elif ircmsg.find("PING :") != -1:
             ping(ircmsg)
