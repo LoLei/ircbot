@@ -1,3 +1,4 @@
+# TODO: ?commands: list available commands
 import os
 import socket
 import time
@@ -63,9 +64,6 @@ class IRCBot():
                     self.users_hash_map_[name].last_seen_ = time.time()
                     self.users_hash_map_[name].last_message_ = message
 
-                for key in self.users_hash_map_.keys():
-                    print(self.users_hash_map_[key])
-
                 if (name.lower() == self.adminname_.lower() and
                         message.rstrip() == self.exitcode_):
                     self.sendmsg("Thank you for freeing me.", self.channel_)
@@ -113,7 +111,6 @@ class IRCBot():
                                    "format. "
                                    "Who cares about human readability anyway?"
                                    ).format(name, last_message, last_seen)
-                            print(msg)
                             self.sendmsg(msg, self.channel_)
                         else:
                             self.sendmsg(
