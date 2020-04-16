@@ -6,6 +6,8 @@ import random
 from textblob import TextBlob
 # Own
 from util import User
+from util import LmCommand
+from util import SentimentCommand
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -22,6 +24,8 @@ class IRCBot():
         self.adminname_ = adminname
         self.exitcode_ = exitcode
         self.users_hash_map_ = {}
+        self.command_prefix_ = '?'
+        self.commands_ = {'lm': LmCommand(self), 'sent': SentimentCommand(self)}
 
     def connect(self):
         self.ircsock_.connect((self.server_, 6667))
@@ -98,24 +102,9 @@ class IRCBot():
                             self.sendmsg("I need a name.", self.channel_)
                             continue
 
-                        if arg in self.users_hash_map_:
-                            name = arg
-                            last_message = self.users_hash_map_[arg] \
-                                .last_message_
-                            last_seen = self.users_hash_map_[arg].last_seen_
-                            # Yeh just mix string multiline formats to satisfy
-                            # PEP8
-                            msg = ("{0}\'s last message: \"{1}\" at {2}. "
-                                   "Do with that what you want. "
-                                   "A timestamp is the most bot-readable " +
-                                   "format. "
-                                   "Who cares about human readability anyway?"
-                                   ).format(name, last_message, last_seen)
-                            self.sendmsg(msg, self.channel_)
-                        else:
-                            self.sendmsg(
-                                "I haven't encountered this user yet.",
-                                self.channel_)
+                        # TODO: Just try to execute the string after ? directly,
+                        # no need for if/switch
+                        self.commands_['lm'].execute(arg)
 
                     elif message[:5].find('?sent') != -1:
                         try:
