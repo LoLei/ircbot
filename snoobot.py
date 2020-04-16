@@ -9,13 +9,14 @@
 #   Need to keep some backlog of messages for that
 #   Use textblob or vader
 
-import collections
-from datetime import date
 import os
 import socket
+import time
 import random
 from textblob import TextBlob
 
+# IRC settings
+# TODO: Put these into class, along with methods of bot
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server = "irc.snoonet.org"  # server
 channel = "##bot-testing"  # channel
@@ -25,19 +26,17 @@ password = os.environ['IRCPW']
 adminname = "Asmodean"  # admin IRC nickname
 exitcode = "Be gone " + botnick
 
+# Other settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
-
-msg_log_size = 50
-msg_log = collections.deque([], maxlen=msg_log_size)
 
 # key = name, value = User
 users_hash_map = {}
 
 
 class User():
-    def __init__(self, name, date, msg):
+    def __init__(self, name, timestamp, msg):
         self.name_ = name
-        self.last_seen_ = date
+        self.last_seen_ = timestamp
         self.last_message_ = msg
 
     def __str__(self):
@@ -45,6 +44,7 @@ class User():
                                      self.last_message_)
 
 
+# Unused
 class Message():
     def __init__(self, sender, text):
         self.sender_ = sender
@@ -92,9 +92,11 @@ def main():
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
             if name not in users_hash_map:
-                new_user = User(name, date.today(), message)
+                new_user = User(name, time.time(), message)
                 users_hash_map[name] = new_user
-            # TODO: Else update last message and last seen
+            else:
+                users_hash_map[name].last_seen_ = time.time()
+                users_hash_map[name].last_message_ = message
 
             for key in users_hash_map.keys():
                 print(users_hash_map[key])
