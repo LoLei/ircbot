@@ -93,7 +93,7 @@ class IRCBot():
                               ]
                         self.sendmsg(random.choice(rs), self.channel_)
 
-                    elif message[:5].find('.last') != -1:
+                    elif message[:5].find('?lm') != -1:
                         try:
                             arg = message.split(' ', 1)[1]
                         except IndexError:
@@ -120,7 +120,7 @@ class IRCBot():
                                 "I haven't encountered this user yet.",
                                 self.channel_)
 
-                    elif message[:5].find('.sent') != -1:
+                    elif message[:5].find('?sent') != -1:
                         try:
                             arg = message.split(' ', 1)[1]
                         except IndexError:
