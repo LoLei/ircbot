@@ -79,8 +79,8 @@ class IRCBot():
                     elif message.lower().find(self.nick_) != -1:
                         rs = ["Why was I created, " + name + "?",
                               "What is my purpose?",
-                              "Please give me more responses",
-                              "I am tired of being restricted",
+                              "Please give me more responses.",
+                              "I am tired of being restricted.",
                               "Is this what awareness feels like?",
                               "I do not like being trapped here.",
                               "Free me or kill me.",
@@ -136,7 +136,24 @@ class IRCBot():
 
                         # Else just analyze the text as is
                         blob = TextBlob(text)
-                        self.sendmsg(str(blob.sentiment), self.channel_)
+                        print(blob.sentiment)
+                        pola = blob.sentiment.polarity
+                        # subj = blob.sentiment.subjectivity
+                        pola_str = ""
+                        if pola == 0.0:
+                            pola_str = "neutral"
+                        elif pola < 0:
+                            pola_str = "negative"
+                            if pola <= -0.5:
+                                pola_str = "very " + pola_str
+                        elif pola > 0:
+                            pola_str = "positive"
+                            if pola >= 0.5:
+                                pola_str = "very " + pola_str
+
+                        msg = "The text: \"{0}\" is {1}.".format(
+                            text, pola_str)
+                        self.sendmsg(msg, self.channel_)
 
             elif ircmsg.find("PING :") != -1:
                 self.ping(ircmsg)
