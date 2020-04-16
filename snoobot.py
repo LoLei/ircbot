@@ -109,6 +109,7 @@ def main():
             if len(name) < 17:  # Max user name length
                 if message.lower().find('hi ' + botnick) != -1:
                     sendmsg("Hello " + name + "!")
+
                 elif message.lower().find(botnick) != -1:
                     replies = ["Why was I created, " + name + "?",
                                "What is my purpose?",
@@ -123,9 +124,19 @@ def main():
                                name + ". Stop bothering me.'"
                                ]
                     sendmsg(random.choice(replies))
+
                 elif message[:5].find('.sent') != -1:
                     arg = message.split(' ', 1)[1]
-                    blob = TextBlob(arg)
+                    text = arg
+
+                    # Use last message of user if argument is user name,
+                    # and that name is in the user log
+                    if arg in users_hash_map:
+                        text = users_hash_map[arg].last_message_
+                        print(text)
+
+                    # Else just analyze the text as is
+                    blob = TextBlob(text)
                     print(blob.sentiment)
 
         elif ircmsg.find("PING :") != -1:
