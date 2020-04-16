@@ -102,19 +102,23 @@ class IRCBot():
 
                         if arg in self.users_hash_map_:
                             name = arg
-                            last_message = self.users_hash_map_[arg].last_message_
+                            last_message = self.users_hash_map_[arg] \
+                                .last_message_
                             last_seen = self.users_hash_map_[arg].last_seen_
+                            # Yeh just mix string multiline formats to satisfy
+                            # PEP8
                             msg = ("{0}\'s last message: \"{1}\" at {2}. "
                                    "Do with that what you want. "
-                                   "A timestamp is the most bot-readable format. "
+                                   "A timestamp is the most bot-readable " +
+                                   "format. "
                                    "Who cares about human readability anyway?"
                                    ).format(name, last_message, last_seen)
                             print(msg)
                             self.sendmsg(msg, self.channel_)
                         else:
                             self.sendmsg(
-                                    "I haven't encountered this user yet.",
-                                    self.channel_)
+                                "I haven't encountered this user yet.",
+                                self.channel_)
 
                     elif message[:5].find('.sent') != -1:
                         try:
