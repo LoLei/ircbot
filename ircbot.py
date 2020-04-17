@@ -27,9 +27,12 @@ class IRCBot():
         self.adminname_ = adminname
         self.exitcode_ = exitcode
         self.users_hash_map_ = {}
+        self.max_user_name_length_ = 17  # Freenode, need to check snoonet
         self.command_prefix_ = '?'
         self.max_command_length_ = 5
-        self.commands_ = {'lm': LmCommand(self), 'sent': SentimentCommand(self)}
+        self.commands_ = {
+            'lm': LmCommand(self),
+            'sent': SentimentCommand(self)}
 
     def connect(self):
         self.ircsock_.connect((self.server_, 6667))
@@ -78,7 +81,7 @@ class IRCBot():
                     self.ircsock_.send(bytes("QUIT \n", "UTF-8"))
                     return
 
-                if len(name) < 17:  # Max user name length
+                if len(name) < self.max_user_name_length_:
                     if message.lower().find('hi ' + self.nick_) != -1:
                         self.sendmsg("Hello " + name + "!", self.channel_)
 
