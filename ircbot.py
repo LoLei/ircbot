@@ -31,7 +31,7 @@ class IRCBot():
         self.exitcode_ = exitcode
         self.users_hash_map_ = {}
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
-        self.command_prefix_ = '%'
+        self.command_prefix_ = '\\'
         self.commands_ = {
             'help': HelpCommand(self),
             'cmds': CommandCommand(self),
