@@ -1,4 +1,8 @@
-# TODO: ?commands: list available commands
+# TODO:
+# ?help
+# ?commands: list available commands
+# ?time: print time
+# ?date: print date
 import os
 import socket
 import time
@@ -95,15 +99,9 @@ class IRCBot():
                         self.sendmsg(random.choice(rs), self.channel_)
 
                     elif message[:5].find('?lm') != -1:
-                        try:
-                            arg = message.split(' ', 1)[1]
-                        except IndexError:
-                            self.sendmsg("I need a name.", self.channel_)
-                            continue
-
                         # TODO: Just try to execute the string after ? directly,
                         # no need for if/switch
-                        self.commands_['lm'].execute(arg)
+                        self.commands_['lm'].execute(message)
 
                     elif message[:5].find('?sent') != -1:
                         try:

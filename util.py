@@ -27,6 +27,13 @@ class LmCommand(Command):
         self.receiver_ = receiver
 
     def execute(self, arg) -> None:
+        incoming_message = arg
+        try:
+            arg = incoming_message.split(' ', 1)[1]
+        except IndexError:
+            self.receiver_.sendmsg("I need a name.", self.receiver_.channel_)
+            return False
+
         if arg in self.receiver_.users_hash_map_:
             name = arg
             last_message = self.receiver_.users_hash_map_[arg] \
@@ -45,6 +52,7 @@ class LmCommand(Command):
             self.receiver_.sendmsg(
                 "I haven't encountered this user yet.",
                 self.receiver_.channel_)
+        return True
 
 
 class SentimentCommand(Command):
@@ -53,7 +61,6 @@ class SentimentCommand(Command):
         self.receiver_ = receiver
 
     def execute(self, arg) -> None:
-
         text = arg
 
         # Use last message of user if argument is user name,
