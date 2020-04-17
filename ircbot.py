@@ -28,6 +28,7 @@ class IRCBot():
         self.exitcode_ = exitcode
         self.users_hash_map_ = {}
         self.command_prefix_ = '?'
+        self.max_command_length_ = 5
         self.commands_ = {'lm': LmCommand(self), 'sent': SentimentCommand(self)}
 
     def connect(self):
@@ -98,13 +99,15 @@ class IRCBot():
                               ]
                         self.sendmsg(random.choice(rs), self.channel_)
 
-                    elif message[:5].find('?lm') != -1:
-                        # TODO: Just try to execute the string after ? directly,
-                        # no need for if/switch
-                        self.commands_['lm'].execute(message)
-
-                    elif message[:5].find('?sent') != -1:
-                        self.commands_['sent'].execute(message)
+                    elif message[:1] == self.command_prefix_:
+                        # Execute command
+                        command_name = message[1:5].split()[0]
+                        if command_name in self.commands_:
+                            self.commands_[command_name].execute(message)
+                        else:
+                            self.sendmsg("Command does not exist. " +
+                                         "Use ?commands for a list.",
+                                         self.channel_)
 
             elif ircmsg.find("PING :") != -1:
                 self.ping(ircmsg)
