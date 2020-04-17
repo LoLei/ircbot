@@ -57,10 +57,19 @@ class LmCommand(Command):
 
 class SentimentCommand(Command):
 
+    # Receiver = Invoker
     def __init__(self, receiver) -> None:
         self.receiver_ = receiver
 
     def execute(self, arg) -> None:
+        incoming_message = arg
+        try:
+            arg = incoming_message.split(' ', 1)[1]
+        except IndexError:
+            self.receiver_.sendmsg("I need a name or some text.",
+                                   self.receiver_.channel_)
+            return False
+
         text = arg
 
         # Use last message of user if argument is user name,
@@ -92,3 +101,4 @@ class SentimentCommand(Command):
         msg = "The text: \"{0}\" is {1}.".format(
             text, pola_str)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True

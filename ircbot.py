@@ -104,14 +104,7 @@ class IRCBot():
                         self.commands_['lm'].execute(message)
 
                     elif message[:5].find('?sent') != -1:
-                        try:
-                            arg = message.split(' ', 1)[1]
-                        except IndexError:
-                            self.sendmsg("I need a name or some text.",
-                                         self.channel_)
-                            continue
-
-                        self.commands_['sent'].execute(arg)
+                        self.commands_['sent'].execute(message)
 
             elif ircmsg.find("PING :") != -1:
                 self.ping(ircmsg)
