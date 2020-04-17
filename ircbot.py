@@ -113,6 +113,19 @@ class IRCBot():
                         self.sendmsg(random.choice(rs), self.channel_)
 
                     elif message[:1] == self.command_prefix_:
+                        # TODO: Maybe use regex to check if proposed command
+                        # string matches the required format
+
+                        # No command after command prefix
+                        if len(message) == 1:
+                            self.sendmsg(
+                                ("Need a command after {0}." +
+                                 " Use {0}cmds for a list." +
+                                 " And stop trying to break me!").
+                                format(self.command_prefix_),
+                                self.channel_)
+                            continue
+
                         # Execute command
                         command_name = message[1:self.max_command_length_].\
                             split()[0]
