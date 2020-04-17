@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from textblob import TextBlob
+
 
 class User():
     def __init__(self, name, timestamp, msg):
@@ -51,5 +53,35 @@ class SentimentCommand(Command):
         self.receiver_ = receiver
 
     def execute(self, arg) -> None:
-        self.receiver_.do_something(self._a)
-        self.receiver_.do_something_else(self._b)
+
+        text = arg
+
+        # Use last message of user if argument is user name,
+        # and that name is in the user log
+        if arg in self.receiver_.users_hash_map_:
+            text = self.receiver_.users_hash_map_[arg].last_message_
+
+        # Else just analyze the text as is
+        blob = TextBlob(text)
+        print(blob.sentiment)
+        pola = blob.sentiment.polarity
+        # subj = blob.sentiment.subjectivity
+        pola_str = ""
+        if pola == 0.0:
+            pola_str = "neutral"
+        elif 0.0 < pola <= 0.25:
+            pola_str = "slightly positive"
+        elif 0.25 < pola <= 0.75:
+            pola_str = "positive"
+        elif 0.75 < pola <= 1.0:
+            pola_str = "very positive"
+        elif 0.0 > pola >= -0.25:
+            pola_str = "slightly negative"
+        elif -0.25 > pola >= -0.75:
+            pola_str = "negative"
+        elif -0.75 > pola >= -1.0:
+            pola_str = "very negative"
+
+        msg = "The text: \"{0}\" is {1}.".format(
+            text, pola_str)
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)

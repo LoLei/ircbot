@@ -3,7 +3,6 @@ import os
 import socket
 import time
 import random
-from textblob import TextBlob
 # Own
 from util import User
 from util import LmCommand
@@ -113,37 +112,8 @@ class IRCBot():
                             self.sendmsg("I need a name or some text.",
                                          self.channel_)
                             continue
-                        text = arg
 
-                        # Use last message of user if argument is user name,
-                        # and that name is in the user log
-                        if arg in self.users_hash_map_:
-                            text = self.users_hash_map_[arg].last_message_
-
-                        # Else just analyze the text as is
-                        blob = TextBlob(text)
-                        print(blob.sentiment)
-                        pola = blob.sentiment.polarity
-                        # subj = blob.sentiment.subjectivity
-                        pola_str = ""
-                        if pola == 0.0:
-                            pola_str = "neutral"
-                        elif 0.0 < pola <= 0.25:
-                            pola_str = "slightly positive"
-                        elif 0.25 < pola <= 0.75:
-                            pola_str = "positive"
-                        elif 0.75 < pola <= 1.0:
-                            pola_str = "very positive"
-                        elif 0.0 > pola >= -0.25:
-                            pola_str = "slightly negative"
-                        elif -0.25 > pola >= -0.75:
-                            pola_str = "negative"
-                        elif -0.75 > pola >= -1.0:
-                            pola_str = "very negative"
-
-                        msg = "The text: \"{0}\" is {1}.".format(
-                            text, pola_str)
-                        self.sendmsg(msg, self.channel_)
+                        self.commands_['sent'].execute(arg)
 
             elif ircmsg.find("PING :") != -1:
                 self.ping(ircmsg)
