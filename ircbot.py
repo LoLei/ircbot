@@ -13,7 +13,7 @@ import string
 # Own
 from user import User
 from command import HelpCommand, CommandCommand, AboutCommand,\
-    LmCommand, SentimentCommand
+    LmCommand, SentimentCommand, TimeCommand
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -37,7 +37,8 @@ class IRCBot():
             'cmds': CommandCommand(self),
             'about': AboutCommand(self),
             'lastmessage': LmCommand(self),
-            'sentiment': SentimentCommand(self)
+            'sentiment': SentimentCommand(self),
+            'time': TimeCommand(self)
             }
         self.max_command_length_ = self.get_max_command_length()
         self.version_ = __version__
