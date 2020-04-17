@@ -9,6 +9,7 @@ import os
 import socket
 import time
 import random
+import string
 # Own
 from user import User
 from command import HelpCommand, CommandCommand, AboutCommand,\
@@ -58,6 +59,18 @@ class IRCBot():
     def sendmsg(self, msg, target):
         self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
                                  "\n", "UTF-8"))
+
+    def startbatch(self, channel):
+        batch_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=14))
+        # Multiline not in prod yet:
+        # https://github.com/ircv3/ircv3-specifications/pull/398
+        batch_type = 'draft/multiline'
+        self.ircsock_.send(bytes("BATCH +" + batch_id + " " + batch_type +
+                                 " " + channel + "\n", "UTF-8"))
+        return batch_id
+
+    def endbatch(self, batch_id):
+        self.ircsock_.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
 
     def receivemsg(self):
         ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
