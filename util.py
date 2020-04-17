@@ -20,13 +20,57 @@ class Command(ABC):
         pass
 
 
+class HelpCommand(Command):
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        msg = "Use {0}cmds for all commands, and {0}about for more info.".\
+            format(self.receiver_.command_prefix_)
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True
+
+
+class CommandCommand(Command):
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        command_names = ""
+        for name in self.receiver_.commands_:
+            command_names += self.receiver_.command_prefix_ + name + ", "
+        self.receiver_.sendmsg(command_names[:-2], self.receiver_.channel_)
+        return True
+
+
+class AboutCommand(Command):
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        msg = "I am a smol IRC bot made by " +\
+            self.receiver_.adminname_ +\
+            ". Mention me by name or use " +\
+            self.receiver_.command_prefix_ +\
+            " for commands. " +\
+            "Version " + self.receiver_.version_
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True
+
+
 class LmCommand(Command):
 
     # Receiver = Invoker
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg) -> None:
+    def execute(self, arg):
         incoming_message = arg
         try:
             arg = incoming_message.split(' ', 1)[1]
@@ -58,10 +102,10 @@ class LmCommand(Command):
 class SentimentCommand(Command):
 
     # Receiver = Invoker
-    def __init__(self, receiver) -> None:
+    def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg) -> None:
+    def execute(self, arg):
         incoming_message = arg
         try:
             arg = incoming_message.split(' ', 1)[1]

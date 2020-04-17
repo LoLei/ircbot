@@ -1,3 +1,7 @@
+__author__ = "Lorenz Leitner"
+__version__ = "0.1337"
+__license__ = "MIT"
+
 # TODO:
 # ?help
 # ?commands: list available commands
@@ -9,8 +13,8 @@ import time
 import random
 # Own
 from util import User
-from util import LmCommand
-from util import SentimentCommand
+from util import HelpCommand, CommandCommand, AboutCommand,\
+    LmCommand, SentimentCommand
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -29,16 +33,22 @@ class IRCBot():
         self.users_hash_map_ = {}
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
         self.command_prefix_ = '?'
-        self.max_command_length_ = 5
         self.commands_ = {
+            'help': HelpCommand(self),
+            'cmds': CommandCommand(self),
+            'about': AboutCommand(self),
             'lm': LmCommand(self),
-            'sent': SentimentCommand(self)}
+            'sent': SentimentCommand(self)
+            }
+        self.max_command_length_ = 6
+        self.version_ = __version__
 
     def connect(self):
         self.ircsock_.connect((self.server_, 6667))
         self.ircsock_.send(bytes("PASS " + self.password_ + "\n", "UTF-8"))
         self.ircsock_.send(bytes("USER " + self.nick_ + " " + self.nick_ +
-                           " " + self.nick_ + ":snoobotasmo .\n", "UTF-8"))
+                                 " " + self.nick_ + ":snoobotasmo .\n",
+                                 "UTF-8"))
         self.ircsock_.send(bytes("NICK " + self.nick_ + "\n", "UTF-8"))
 
     def join(self, chan):
@@ -104,12 +114,14 @@ class IRCBot():
 
                     elif message[:1] == self.command_prefix_:
                         # Execute command
-                        command_name = message[1:5].split()[0]
+                        command_name = message[1:self.max_command_length_].\
+                            split()[0]
                         if command_name in self.commands_:
                             self.commands_[command_name].execute(message)
                         else:
                             self.sendmsg("Command does not exist. " +
-                                         "Use ?commands for a list.",
+                                         "Use {}cmds for a list.".
+                                         format(self.command_prefix_),
                                          self.channel_)
 
             elif ircmsg.find("PING :") != -1:
