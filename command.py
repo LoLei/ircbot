@@ -15,7 +15,7 @@ class Command(ABC):
 
 class HelpCommand(Command):
 
-    helptext_ = "show this help text"
+    helptext_ = "show basic help text"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -30,7 +30,7 @@ class HelpCommand(Command):
 
 class CommandCommand(Command):
 
-    helptext_ = "list available commands"
+    helptext_ = "list available commands and usages"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -40,8 +40,8 @@ class CommandCommand(Command):
         command_names = ""
         for name in self.receiver_.commands_:
             command_names += self.receiver_.command_prefix_ + name + " - " +\
-                self.receiver_.commands_[name].helptext_ + ', '
-        self.receiver_.sendmsg(command_names[:-2], self.receiver_.channel_)
+                self.receiver_.commands_[name].helptext_ + ' | '
+        self.receiver_.sendmsg(command_names[:-3], self.receiver_.channel_)
         return True
 
 
@@ -103,7 +103,7 @@ class LmCommand(Command):
 
 class SentimentCommand(Command):
 
-    helptext_ = "<text>|<user> analyze sentiment of a custom text of " +\
+    helptext_ = "<text>/<user> analyze sentiment of a custom text or " +\
         "a user's last message"
 
     # Receiver = Invoker
