@@ -30,18 +30,33 @@ class HelpCommand(Command):
 
 class CommandCommand(Command):
 
-    helptext_ = "list available commands and usages"
+    helptext_ = "[multiline] list available commands and usages"
 
     # Receiver = Invoker
     def __init__(self, receiver):
         self.receiver_ = receiver
 
     def execute(self, arg):
-        command_names = ""
-        for name in self.receiver_.commands_:
-            command_names += self.receiver_.command_prefix_ + name + " - " +\
-                self.receiver_.commands_[name].helptext_ + ' | '
-        self.receiver_.sendmsg(command_names[:-3], self.receiver_.channel_)
+        incoming_message = arg
+        multiline = False
+
+        try:
+            arg = incoming_message.split(' ', 1)[1]
+            multiline = bool(arg)
+        except IndexError:
+            pass
+
+        if multiline:
+            for name in self.receiver_.commands_:
+                msg = name + " - " + self.receiver_.commands_[name].helptext_
+                self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        else:
+            command_names = ""
+            for name in self.receiver_.commands_:
+                command_names += self.receiver_.command_prefix_ + name + " - " +\
+                    self.receiver_.commands_[name].helptext_ + ' | '
+            self.receiver_.sendmsg(command_names[:-3], self.receiver_.channel_)
+
         return True
 
 
