@@ -3,8 +3,6 @@ __version__ = "0.1337"
 __license__ = "MIT"
 
 # TODO:
-# ?help
-# ?commands: list available commands
 # ?time: print time
 # ?date: print date
 import os
@@ -12,8 +10,8 @@ import socket
 import time
 import random
 # Own
-from util import User
-from util import HelpCommand, CommandCommand, AboutCommand,\
+from user import User
+from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand
 
 # Misc settings
@@ -38,9 +36,9 @@ class IRCBot():
             'cmds': CommandCommand(self),
             'about': AboutCommand(self),
             'lm': LmCommand(self),
-            'sent': SentimentCommand(self)
+            'sentiment': SentimentCommand(self)
             }
-        self.max_command_length_ = 6
+        self.max_command_length_ = self.get_max_command_length()
         self.version_ = __version__
 
     def connect(self):
@@ -68,6 +66,15 @@ class IRCBot():
         print(sepmsg, "#"*(int(termcolumns)-len(sepmsg)))
         print(ircmsg)
         return ircmsg
+
+    def get_max_command_length(self):
+        max_length = 0
+        for command_name in self.commands_:
+            if len(command_name) > max_length:
+                max_length = len(command_name)
+        print("max_length", max_length)
+        return max_length
+
 
     def run(self):
         self.connect()
@@ -118,16 +125,10 @@ class IRCBot():
 
                         # No command after command prefix
                         if len(message) == 1:
-                            self.sendmsg(
-                                ("Need a command after {0}." +
-                                 " Use {0}cmds for a list." +
-                                 " And stop trying to break me!").
-                                format(self.command_prefix_),
-                                self.channel_)
                             continue
 
                         # Execute command
-                        command_name = message[1:self.max_command_length_].\
+                        command_name = message[1:self.max_command_length_+1].\
                             split()[0]
                         if command_name in self.commands_:
                             self.commands_[command_name].execute(message)

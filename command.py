@@ -2,18 +2,11 @@ from abc import ABC, abstractmethod
 from textblob import TextBlob
 
 
-class User():
-    def __init__(self, name, timestamp, msg):
-        self.name_ = name
-        self.last_seen_ = timestamp
-        self.last_message_ = msg
-
-    def __str__(self):
-        return "{}\n{}\n{}\n".format(self.name_, self.last_seen_,
-                                     self.last_message_)
-
-
 class Command(ABC):
+    @property
+    @abstractmethod
+    def helptext_(self):
+        pass
 
     @abstractmethod
     def execute(self, arg):
@@ -21,6 +14,8 @@ class Command(ABC):
 
 
 class HelpCommand(Command):
+
+    helptext_ = "show this help text"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -35,6 +30,8 @@ class HelpCommand(Command):
 
 class CommandCommand(Command):
 
+    helptext_ = "list available commands"
+
     # Receiver = Invoker
     def __init__(self, receiver):
         self.receiver_ = receiver
@@ -42,12 +39,15 @@ class CommandCommand(Command):
     def execute(self, arg):
         command_names = ""
         for name in self.receiver_.commands_:
-            command_names += self.receiver_.command_prefix_ + name + ", "
+            command_names += self.receiver_.command_prefix_ + name + " - " +\
+                self.receiver_.commands_[name].helptext_ + ', '
         self.receiver_.sendmsg(command_names[:-2], self.receiver_.channel_)
         return True
 
 
 class AboutCommand(Command):
+
+    helptext_ = "show information about me"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -65,6 +65,8 @@ class AboutCommand(Command):
 
 
 class LmCommand(Command):
+
+    helptext_ = "<user> show information about last message of a user"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -100,6 +102,9 @@ class LmCommand(Command):
 
 
 class SentimentCommand(Command):
+
+    helptext_ = "<text>|<user> analyze sentiment of a custom text of " +\
+        "a user's last message"
 
     # Receiver = Invoker
     def __init__(self, receiver):
