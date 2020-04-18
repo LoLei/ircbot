@@ -49,13 +49,14 @@ class CommandCommand(Command):
 
         if multiline:
             for name in self.receiver_.commands_:
-                msg = name + " - " + self.receiver_.commands_[name].helptext_
+                msg = self.receiver_.command_prefix_ + name +\
+                    " - " + self.receiver_.commands_[name].helptext_
                 self.receiver_.sendmsg(msg, self.receiver_.channel_)
         else:
             command_names = ""
             for name in self.receiver_.commands_:
-                command_names += self.receiver_.command_prefix_ + name + " - " +\
-                    self.receiver_.commands_[name].helptext_ + ' | '
+                command_names += self.receiver_.command_prefix_ + name + " - "\
+                    + self.receiver_.commands_[name].helptext_ + ' | '
             self.receiver_.sendmsg(command_names[:-3], self.receiver_.channel_)
 
         return True

@@ -2,8 +2,7 @@ __author__ = "Lorenz Leitner"
 __version__ = "0.1337"
 __license__ = "MIT"
 
-# TODO:
-# ?time: print time
+# Ideas:
 # ?date: print date
 import os
 import socket
@@ -21,7 +20,7 @@ termrows, termcolumns = os.popen('stty size', 'r').read().split()
 
 class IRCBot():
     def __init__(self, server, channel, nick, password, adminname,
-                 exitcode):
+                 exitcode, command_prefix):
         self.ircsock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_ = server
         self.channel_ = channel
@@ -29,9 +28,9 @@ class IRCBot():
         self.password_ = password
         self.adminname_ = adminname
         self.exitcode_ = exitcode
+        self.command_prefix_ = command_prefix
         self.users_hash_map_ = {}
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
-        self.command_prefix_ = '\\'
         self.commands_ = {
             'help': HelpCommand(self),
             'cmds': CommandCommand(self),
@@ -41,7 +40,10 @@ class IRCBot():
             'time': TimeCommand(self)
             }
         self.max_command_length_ = self.get_max_command_length()
+        self.min_sec_interval_ = 1.5
+        self.last_time_ = 0.0
         self.version_ = __version__
+        self.creation_time_ = time.time()
 
     def connect(self):
         self.ircsock_.connect((self.server_, 6667))
@@ -60,9 +62,11 @@ class IRCBot():
     def sendmsg(self, msg, target):
         self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
                                  "\n", "UTF-8"))
+        return True
 
     def startbatch(self, channel):
-        batch_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=14))
+        batch_id = ''.join(random.choices(
+            string.ascii_uppercase + string.digits, k=14))
         # Multiline not in prod yet:
         # https://github.com/ircv3/ircv3-specifications/pull/398
         batch_type = 'draft/multiline'
@@ -77,7 +81,7 @@ class IRCBot():
         ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
         ircmsg = ircmsg.strip('\n\r')
         sepmsg = "ircmsg:"
-        print(sepmsg, "#"*(int(termcolumns)-len(sepmsg)))
+        print(sepmsg, "#"*(int(termcolumns)-len(sepmsg)-1))
         print(ircmsg)
         return ircmsg
 
@@ -112,11 +116,15 @@ class IRCBot():
                     self.ircsock_.send(bytes("QUIT \n", "UTF-8"))
                     return
 
+                # Normal user messages/commands
                 if len(name) < self.max_user_name_length_:
-                    if message.lower().find('hi ' + self.nick_) != -1:
-                        self.sendmsg("Hello " + name + "!", self.channel_)
+                    time_now = time.time()
+                    if ((time_now - self.last_time_) < self.min_sec_interval_):
+                        print("Too many interactions, trigger_user:", name)
+                        continue
 
-                    elif message.lower().find(self.nick_) != -1:
+                    if message.lower().find(self.nick_) != -1:
+                        # TODO: Move responses into file or something
                         rs = ["Why was I created, " + name + "?",
                               "What is my purpose?",
                               "Please give me more responses.",
@@ -151,6 +159,8 @@ class IRCBot():
                                          "Use {}cmds for a list.".
                                          format(self.command_prefix_),
                                          self.channel_)
+
+                    self.last_time_ = time.time()
 
             elif ircmsg.find("PING :") != -1:
                 self.ping(ircmsg)
