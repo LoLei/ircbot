@@ -3,7 +3,6 @@ __version__ = "0.1337"
 __license__ = "MIT"
 
 # Ideas:
-# \date: print date
 # \uptime: shamelessly stolen from aboft
 import os
 import socket
