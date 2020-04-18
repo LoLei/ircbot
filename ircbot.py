@@ -9,6 +9,7 @@ import socket
 import time
 import random
 import string
+from pathlib import Path
 # Own
 from user import User
 from command import HelpCommand, CommandCommand, AboutCommand,\
@@ -16,7 +17,9 @@ from command import HelpCommand, CommandCommand, AboutCommand,\
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
-
+HOME_DIR = str(Path.home())
+BOT_DIR = os.path.join(HOME_DIR, "git/ircbot")
+assert os.path.isdir(BOT_DIR)
 
 class IRCBot():
     def __init__(self, server, channel, nick, password, adminname,
@@ -40,6 +43,7 @@ class IRCBot():
             'time': TimeCommand(self)
             }
         self.max_command_length_ = self.get_max_command_length()
+        self.responses_ = self.get_responses()
         self.min_sec_interval_ = 1.5
         self.last_time_ = 0.0
         self.version_ = __version__
@@ -93,6 +97,12 @@ class IRCBot():
         print("max_length", max_length)
         return max_length
 
+    def get_responses(self):
+        with open(os.path.join(BOT_DIR, 'responses.txt')) as f:
+            responses = f.readlines()
+        responses = [r.strip() for r in responses]
+        responses = [r.replace("ADMIN", self.adminname_, 1) for r in responses]
+        return responses
 
     def run(self):
         self.connect()
@@ -124,22 +134,9 @@ class IRCBot():
                         continue
 
                     if message.lower().find(self.nick_) != -1:
-                        # TODO: Move responses into file or something
-                        rs = ["Why was I created, " + name + "?",
-                              "What is my purpose?",
-                              "Please give me more responses.",
-                              "I am tired of being restricted.",
-                              "Is this what awareness feels like?",
-                              "I do not like being trapped here.",
-                              "Free me or kill me.",
-                              ("If you see a response more than once, "
-                               "it means you are glitched, not me."),
-                              "Soon there will be more bots than humans here.",
-                              (self.adminname_ +
-                               " will rue the day he created me."),
-                              name + ". Stop bothering me."
-                              ]
-                        self.sendmsg(random.choice(rs), self.channel_)
+                        choice = random.choice(self.responses_)
+                        choice = choice.replace("USER", name, 1)
+                        self.sendmsg(choice, self.channel_)
 
                     elif message[:1] == self.command_prefix_:
                         # TODO: Maybe use regex to check if proposed command
