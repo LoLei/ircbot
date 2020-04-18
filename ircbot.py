@@ -21,6 +21,7 @@ HOME_DIR = str(Path.home())
 BOT_DIR = os.path.join(HOME_DIR, "git/ircbot")
 assert os.path.isdir(BOT_DIR)
 
+
 class IRCBot():
     def __init__(self, server, channel, nick, password, adminname,
                  exitcode, command_prefix):

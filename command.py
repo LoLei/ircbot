@@ -76,7 +76,8 @@ class AboutCommand(Command):
             ". Mention me by name or use " +\
             self.receiver_.command_prefix_ +\
             " for commands. " +\
-            "Version " + self.receiver_.version_
+            "Version " + self.receiver_.version_ +\
+            ". Source: https://git.io/JfJ9B"
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 
