@@ -1,3 +1,4 @@
+import datetime
 import time
 from abc import ABC, abstractmethod
 from textblob import TextBlob
@@ -181,4 +182,18 @@ class TimeCommand(Command):
 
     def execute(self, arg):
         self.receiver_.sendmsg(str(time.time()), self.receiver_.channel_)
+        return True
+
+
+class DateCommand(Command):
+
+    helptext_ = "show the date"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        date_str = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat(' ')
+        self.receiver_.sendmsg(date_str, self.receiver_.channel_)
         return True

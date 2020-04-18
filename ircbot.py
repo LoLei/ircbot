@@ -3,7 +3,8 @@ __version__ = "0.1337"
 __license__ = "MIT"
 
 # Ideas:
-# ?date: print date
+# \date: print date
+# \uptime: shamelessly stolen from aboft
 import os
 import socket
 import time
@@ -13,7 +14,7 @@ from pathlib import Path
 # Own
 from user import User
 from command import HelpCommand, CommandCommand, AboutCommand,\
-    LmCommand, SentimentCommand, TimeCommand
+    LmCommand, SentimentCommand, TimeCommand, DateCommand
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -41,7 +42,8 @@ class IRCBot():
             'about': AboutCommand(self),
             'lastmessage': LmCommand(self),
             'sentiment': SentimentCommand(self),
-            'time': TimeCommand(self)
+            'time': TimeCommand(self),
+            'date': DateCommand(self)
             }
         self.max_command_length_ = self.get_max_command_length()
         self.responses_ = self.get_responses()
