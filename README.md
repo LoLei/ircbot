@@ -4,7 +4,7 @@ Smol IRC bot
 Tested with [irc.snoonet.org](https://snoonet.org/)
 
 ## Usage
-Start it once on your server and use the commands within the IRC client.
+Start it once on your server and use the commands within your IRC client.
 
 ### Server
 ```
