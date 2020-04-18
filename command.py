@@ -197,3 +197,19 @@ class DateCommand(Command):
         date_str = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat(' ')
         self.receiver_.sendmsg(date_str, self.receiver_.channel_)
         return True
+
+
+class UptimeCommand(Command):
+
+    helptext_ = "show my age"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        time_now = time.time()
+        diff_sec = time_now - self.receiver_.creation_time_
+        diff_time = datetime.timedelta(seconds=int(diff_sec))
+        self.receiver_.sendmsg(str(diff_time), self.receiver_.channel_)
+        return True
