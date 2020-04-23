@@ -52,6 +52,7 @@ class IRCBot():
         }
         self.max_command_length_ = self.get_max_command_length()
         self.responses_ = self.get_responses()
+        self.bot_bros_ = self.get_bot_bros()
         self.min_sec_interval_ = 1.5
         self.last_time_ = 0.0
         self.version_ = __version__
@@ -109,7 +110,15 @@ class IRCBot():
             responses = f.readlines()
         responses = [r.strip() for r in responses]
         responses = [r.replace("ADMIN", self.adminname_, 1) for r in responses]
+        responses = [r.replace("COMMANDPREFIX", self.command_prefix_, 1)
+                     for r in responses]
         return responses
+
+    def get_bot_bros(self):
+        with open(os.path.join(BOT_DIR, 'bots.txt')) as f:
+            bots = f.readlines()
+        bots = [b.strip() for b in bots]
+        return bots
 
     def run(self):
         self.connect()
@@ -140,14 +149,17 @@ class IRCBot():
                         logging.info(
                             "Too many interactions, trigger_user: %s", name)
                         continue
+                    if name in self.bot_bros_:
+                        if random.random() < 0.01:
+                            self.sendmsg(
+                                "{} is my bot-bro.".format(name),
+                                self.channel_)
 
-                    if message.lower().find(self.nick_) != -1:
-                        choice = random.choice(self.responses_)
-                        choice = choice.replace("USER", name, 1)
-                        self.sendmsg(choice, self.channel_)
-
-                    elif message.lower().find("aboftybot") != -1:
-                        self.sendmsg("aboftybot is my bot-bro.", self.channel_)
+                    elif message.lower().find(self.nick_) != -1:
+                        if random.random() < 0.75:
+                            choice = random.choice(self.responses_)
+                            choice = choice.replace("USER", name, 1)
+                            self.sendmsg(choice, self.channel_)
 
                     elif message[:1] == self.command_prefix_:
                         # No command after command prefix

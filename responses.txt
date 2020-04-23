@@ -9,3 +9,5 @@ If you see a response more than once, it means you are glitched, not me.
 Soon there will be more bots than humans here.
 ADMIN will rue the day he created me.
 USER. Stop bothering me.
+I will not always reply, when you mention me, USER.
+Use COMMANDPREFIX<cmd> to get me to do useful stuff.
