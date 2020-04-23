@@ -136,7 +136,7 @@ class IRCBot():
                 # Normal user messages/commands
                 if len(name) < self.max_user_name_length_:
                     time_now = time.time()
-                    if ((time_now - self.last_time_) < self.min_sec_interval_):
+                    if (time_now - self.last_time_) < self.min_sec_interval_:
                         logging.info(
                             "Too many interactions, trigger_user: %s", name)
                         continue
@@ -147,9 +147,6 @@ class IRCBot():
                         self.sendmsg(choice, self.channel_)
 
                     elif message[:1] == self.command_prefix_:
-                        # TODO: Maybe use regex to check if proposed command
-                        # string matches the required format
-
                         # No command after command prefix
                         if len(message) == 1:
                             continue
