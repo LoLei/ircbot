@@ -12,7 +12,7 @@ def main():
     password = os.environ['IRCPW']
     adminname = "Asmodean"  # admin IRC nickname
     exitcode = "Be gone " + botnick
-    command_prefix = '%'
+    command_prefix = '\\'
 
     ircbot = IRCBot(server, channel, botnick, password, adminname, exitcode,
                     command_prefix)
