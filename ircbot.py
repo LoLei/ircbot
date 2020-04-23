@@ -4,11 +4,13 @@ __license__ = "MIT"
 
 # Ideas:
 # \updog
+import logging
 import os
 import socket
 import time
 import random
 import string
+from datetime import datetime
 from pathlib import Path
 # Own
 from user import User
@@ -18,6 +20,8 @@ from command import HelpCommand, CommandCommand, AboutCommand,\
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
+logging.basicConfig(filename=datetime.now().strftime(
+    '%Y_%m_%d.log'), level=logging.DEBUG)
 HOME_DIR = str(Path.home())
 BOT_DIR = os.path.join(HOME_DIR, "git/ircbot")
 assert os.path.isdir(BOT_DIR)
@@ -45,7 +49,7 @@ class IRCBot():
             'time': TimeCommand(self),
             'date': DateCommand(self),
             'uptime': UptimeCommand(self)
-            }
+        }
         self.max_command_length_ = self.get_max_command_length()
         self.responses_ = self.get_responses()
         self.min_sec_interval_ = 1.5
@@ -89,8 +93,8 @@ class IRCBot():
         ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
         ircmsg = ircmsg.strip('\n\r')
         sepmsg = "ircmsg:"
-        print(sepmsg, "#"*(int(termcolumns)-len(sepmsg)-1))
-        print(ircmsg)
+        logging.info("%s %s", sepmsg, "-"*(int(termcolumns)-len(sepmsg)-1))
+        logging.info(ircmsg)
         return ircmsg
 
     def get_max_command_length(self):
@@ -98,7 +102,6 @@ class IRCBot():
         for command_name in self.commands_:
             if len(command_name) > max_length:
                 max_length = len(command_name)
-        print("max_length", max_length)
         return max_length
 
     def get_responses(self):
@@ -134,7 +137,8 @@ class IRCBot():
                 if len(name) < self.max_user_name_length_:
                     time_now = time.time()
                     if ((time_now - self.last_time_) < self.min_sec_interval_):
-                        print("Too many interactions, trigger_user:", name)
+                        logging.info(
+                            "Too many interactions, trigger_user: %s", name)
                         continue
 
                     if message.lower().find(self.nick_) != -1:
