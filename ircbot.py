@@ -147,7 +147,7 @@ class IRCBot():
                         self.sendmsg(choice, self.channel_)
 
                     elif message.lower().find("aboftybot") != -1:
-                        self.sendmsg("Hey fellow bot.", self.channel_)
+                        self.sendmsg("aboftybot is my bot-bro.", self.channel_)
 
                     elif message[:1] == self.command_prefix_:
                         # No command after command prefix
