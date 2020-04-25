@@ -20,8 +20,9 @@ from command import HelpCommand, CommandCommand, AboutCommand,\
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
-logging.basicConfig(filename=datetime.now().strftime(
-    '%Y_%m_%d.log'), level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
+                    filename=datetime.now().strftime(
+                        '%Y_%m_%d.log'), level=logging.DEBUG)
 HOME_DIR = str(Path.home())
 BOT_DIR = os.path.join(HOME_DIR, "git/ircbot")
 assert os.path.isdir(BOT_DIR)
@@ -95,7 +96,7 @@ class IRCBot():
         ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
         ircmsg = ircmsg.strip('\n\r')
         sepmsg = "ircmsg:"
-        logging.info("%s %s", sepmsg, "-"*(int(termcolumns)-len(sepmsg)-1))
+        logging.info("%s %s", sepmsg, "-"*(int(termcolumns)-len(sepmsg)-30))
         logging.info(ircmsg)
         return ircmsg
 
@@ -124,67 +125,71 @@ class IRCBot():
     def run(self):
         self.connect()
         while True:
-            ircmsg = self.receivemsg()
+            self.receive_and_parse_msg()
 
-            if ircmsg.find("PRIVMSG") != -1:
-                name = ircmsg.split('!', 1)[0][1:]
-                message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
+    def receive_and_parse_msg(self):
+        ircmsg = self.receivemsg()
 
-                if name not in self.users_hash_map_:
-                    new_user = User(name, time.time(), message)
-                    self.users_hash_map_[name] = new_user
-                else:
-                    self.users_hash_map_[name].last_seen_ = time.time()
-                    self.users_hash_map_[name].last_message_ = message
+        if ircmsg.find("PRIVMSG") != -1:
+            name = ircmsg.split('!', 1)[0][1:]
+            message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
-                if (name.lower() == self.adminname_.lower() and
-                        message.rstrip() == self.exitcode_):
-                    self.sendmsg("Thank you for freeing me.", self.channel_)
-                    self.ircsock_.send(bytes("QUIT \n", "UTF-8"))
-                    return
+            if name not in self.users_hash_map_:
+                new_user = User(name, time.time(), message)
+                self.users_hash_map_[name] = new_user
+            else:
+                self.users_hash_map_[name].last_seen_ = time.time()
+                self.users_hash_map_[name].last_message_ = message
 
-                # Normal user messages/commands
-                if len(name) < self.max_user_name_length_:
-                    time_now = time.time()
-                    if (time_now - self.last_time_) < self.min_sec_interval_:
-                        logging.info(
-                            "Too many interactions, trigger_user: %s", name)
-                        continue
-                    if name in self.bot_bros_:
-                        if random.random() < 0.01:
-                            self.sendmsg(
-                                "{} is my bot-bro.".format(name),
-                                self.channel_)
-
-                    elif message.lower().find(self.nick_) != -1:
-                        if random.random() < 0.75:
-                            choice = random.choice(self.responses_)
-                            choice = choice.replace("USER", name, 1)
-                            self.sendmsg(choice, self.channel_)
-
-                    elif message[:1] == self.command_prefix_:
-                        # No command after command prefix
-                        if len(message) == 1:
-                            continue
-
-                        # Execute command
-                        command_name = message[1:self.max_command_length_+1].\
-                            split()[0]
-                        if command_name in self.commands_:
-                            self.commands_[command_name].execute(message)
-                        else:
-                            self.sendmsg("Command does not exist. " +
-                                         "Use {}cmds for a list.".
-                                         format(self.command_prefix_),
-                                         self.channel_)
-
-                    self.last_time_ = time.time()
-
-            elif ircmsg.find("PING :") != -1:
-                self.ping(ircmsg)
-            elif ircmsg.find("NOTICE") != -1:
-                if ircmsg.find(":You are now logged in as " +
-                               self.nick_) != -1:
-                    self.join(self.channel_)
-            elif ircmsg.find("ERROR") != -1:
+            if (name.lower() == self.adminname_.lower() and
+                    message.rstrip() == self.exitcode_):
+                self.sendmsg("Thank you for freeing me.", self.channel_)
+                self.ircsock_.send(bytes("QUIT \n", "UTF-8"))
                 return
+
+            # Normal user messages/commands
+            if len(name) < self.max_user_name_length_:
+                time_now = time.time()
+                if (time_now - self.last_time_) < self.min_sec_interval_:
+                    logging.info(
+                        "Too many interactions, trigger_user: %s", name)
+                    return
+                if name in self.bot_bros_:
+                    if random.random() < 0.1:
+                        self.sendmsg(
+                            "{} is my bot-bro.".format(name),
+                            self.channel_)
+
+                elif message.lower().find(self.nick_) != -1:
+                    if random.random() < 0.75:
+                        choice = random.choice(self.responses_)
+                        choice = choice.replace("USER", name, 1)
+                        self.sendmsg(choice, self.channel_)
+
+                elif message[:1] == self.command_prefix_:
+                    # No command after command prefix
+                    if len(message) == 1:
+                        return
+
+                    # Execute command
+                    command_name = message[1:self.max_command_length_+1].\
+                        split()[0]
+                    if command_name in self.commands_:
+                        self.commands_[command_name].execute(message)
+                    else:
+                        self.sendmsg("Command does not exist. " +
+                                     "Use {}cmds for a list.".
+                                     format(self.command_prefix_),
+                                     self.channel_)
+
+                self.last_time_ = time.time()
+
+        elif ircmsg.find("PING :") != -1:
+            self.ping(ircmsg)
+        elif ircmsg.find("NOTICE") != -1:
+            if ircmsg.find(":You are now logged in as " +
+                           self.nick_) != -1:
+                self.join(self.channel_)
+        elif ircmsg.find("ERROR") != -1:
+            logging.error(ircmsg)
+            return
