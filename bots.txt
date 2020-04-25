@@ -1,3 +1,4 @@
+StormBot
 SubWatch
 aboftybot
 gonzobot
