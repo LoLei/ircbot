@@ -21,3 +21,6 @@ Linux good.
 Windows bad.
 I use Arch btw.
 Btw I use Arch.
+MacOS bad. But not as bad as Windows?
+Install Gentoo.
+Send COMMANDPREFIX \about if you want to see my source.

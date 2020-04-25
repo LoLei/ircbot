@@ -117,14 +117,12 @@ class IRCBot():
         responses = [r.replace("ADMIN", self.adminname_, 1) for r in responses]
         responses = [r.replace("COMMANDPREFIX", self.command_prefix_, 1)
                      for r in responses]
-        print("getting responses")
         return responses
 
     def get_bot_bros(self):
         with open(os.path.join(BOT_DIR, 'bots.txt')) as f:
             bots = f.readlines()
         bots = [b.strip() for b in bots]
-        print("getting bot bros")
         return bots
 
     def run(self):
