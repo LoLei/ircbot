@@ -125,6 +125,9 @@ class IRCBot():
         bots = [b.strip() for b in bots]
         return bots
 
+    def read_db_txt_files(self):
+        return self.get_responses(), self.get_bot_bros()
+
     def run(self):
         self.connect()
 
@@ -140,8 +143,7 @@ class IRCBot():
 
     def re_read_txt_database_loop(self):
         while True:
-            self.responses_ = self.get_responses()
-            self.bot_bros_ = self.get_bot_bros()
+            self.responses_, self.bot_bros_ = self.read_db_txt_files()
             time.sleep(self.re_files_txt_interval_)
 
     def receive_and_parse_msg_loop(self):
