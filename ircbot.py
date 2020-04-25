@@ -2,8 +2,8 @@ __author__ = "Lorenz Leitner"
 __version__ = "0.1337"
 __license__ = "MIT"
 
-# Ideas:
-# * Periodically update files like responses.txt
+# Todos:
+# * Fix NickServ resetting nick
 import logging
 import os
 import socket
@@ -59,9 +59,7 @@ class IRCBot():
         self.min_msg_interval_ = 1.5
         self.last_msg_time_ = 0.0
         self.re_nick_interval_ = 60.0*15
-        self.last_nick_time_ = 0.0
         self.re_files_txt_interval_ = 60.0*2
-        self.last_files_txt_time_ = 0.0
         self.version_ = __version__
         self.creation_time_ = time.time()
 
@@ -132,28 +130,25 @@ class IRCBot():
     def run(self):
         self.connect()
 
-        t_database = threading.Thread(target=self.re_read_txt_database_loop)
-        t_database.start()
+        # Thread to re-read the database files
+        t_read_database = threading.Thread(
+            target=self.re_read_txt_database_loop)
+        t_read_database.start()
 
+        # Thread to continuously receive and parse messages
         t_recv_parse_msg = threading.Thread(
-            target=self.receive_and_parse_msg_forever)
+            target=self.receive_and_parse_msg_loop)
         t_recv_parse_msg.start()
 
     def re_read_txt_database_loop(self):
-        i = 0
         while True:
-            print("re_read_txt_database_loop", i)
             self.responses_ = self.get_responses()
             self.bot_bros_ = self.get_bot_bros()
-            time.sleep(60*2)
-            i += 1
+            time.sleep(self.re_files_txt_interval_)
 
-    def receive_and_parse_msg_forever(self):
-        i = 0
+    def receive_and_parse_msg_loop(self):
         while True:
-            print("receive_and_parse_msg_forever", i)
             self.receive_and_parse_msg()
-            i += 1
 
     def receive_and_parse_msg(self):
         ircmsg = self.receivemsg()
