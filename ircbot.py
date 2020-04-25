@@ -10,6 +10,7 @@ import socket
 import time
 import random
 import string
+import threading
 from datetime import datetime
 from pathlib import Path
 # Own
@@ -52,11 +53,15 @@ class IRCBot():
             'uptime': UptimeCommand(self),
             'updog': UpdogCommand(self)
         }
+        self.responses_ = []
+        self.bot_bros_ = []
         self.max_command_length_ = self.get_max_command_length()
-        self.responses_ = self.get_responses()
-        self.bot_bros_ = self.get_bot_bros()
-        self.min_sec_interval_ = 1.5
-        self.last_time_ = 0.0
+        self.min_msg_interval_ = 1.5
+        self.last_msg_time_ = 0.0
+        self.re_nick_interval_ = 60.0*15
+        self.last_nick_time_ = 0.0
+        self.re_files_txt_interval_ = 60.0*2
+        self.last_files_txt_time_ = 0.0
         self.version_ = __version__
         self.creation_time_ = time.time()
 
@@ -114,18 +119,41 @@ class IRCBot():
         responses = [r.replace("ADMIN", self.adminname_, 1) for r in responses]
         responses = [r.replace("COMMANDPREFIX", self.command_prefix_, 1)
                      for r in responses]
+        print("getting responses")
         return responses
 
     def get_bot_bros(self):
         with open(os.path.join(BOT_DIR, 'bots.txt')) as f:
             bots = f.readlines()
         bots = [b.strip() for b in bots]
+        print("getting bot bros")
         return bots
 
     def run(self):
         self.connect()
+
+        t_database = threading.Thread(target=self.re_read_txt_database_loop)
+        t_database.start()
+
+        t_recv_parse_msg = threading.Thread(
+            target=self.receive_and_parse_msg_forever)
+        t_recv_parse_msg.start()
+
+    def re_read_txt_database_loop(self):
+        i = 0
         while True:
+            print("re_read_txt_database_loop", i)
+            self.responses_ = self.get_responses()
+            self.bot_bros_ = self.get_bot_bros()
+            time.sleep(60*2)
+            i += 1
+
+    def receive_and_parse_msg_forever(self):
+        i = 0
+        while True:
+            print("receive_and_parse_msg_forever", i)
             self.receive_and_parse_msg()
+            i += 1
 
     def receive_and_parse_msg(self):
         ircmsg = self.receivemsg()
@@ -150,7 +178,7 @@ class IRCBot():
             # Normal user messages/commands
             if len(name) < self.max_user_name_length_:
                 time_now = time.time()
-                if (time_now - self.last_time_) < self.min_sec_interval_:
+                if (time_now - self.last_msg_time_) < self.min_msg_interval_:
                     logging.info(
                         "Too many interactions, trigger_user: %s", name)
                     return
@@ -182,7 +210,7 @@ class IRCBot():
                                      format(self.command_prefix_),
                                      self.channel_)
 
-                self.last_time_ = time.time()
+                self.last_msg_time_ = time.time()
 
         elif ircmsg.find("PING :") != -1:
             self.ping(ircmsg)
