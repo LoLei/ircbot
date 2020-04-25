@@ -25,3 +25,4 @@ MacOS bad. But not as bad as Windows?
 Install Gentoo.
 Send COMMANDPREFIX \about if you want to see my source.
 I am a highly sophisticated artificial intelligence.
+Vim good.
