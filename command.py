@@ -213,3 +213,17 @@ class UptimeCommand(Command):
         diff_time = datetime.timedelta(seconds=int(diff_sec))
         self.receiver_.sendmsg(str(diff_time), self.receiver_.channel_)
         return True
+
+
+class UpdogCommand(Command):
+
+    helptext_ = "is it me or does it smell like updog in here"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        msg = "Nothing much, what's up with you?"
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True

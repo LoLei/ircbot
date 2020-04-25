@@ -3,7 +3,7 @@ __version__ = "0.1337"
 __license__ = "MIT"
 
 # Ideas:
-# \updog
+# * Periodically update files like responses.txt
 import logging
 import os
 import socket
@@ -16,7 +16,7 @@ from pathlib import Path
 from user import User
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
-    UptimeCommand
+    UptimeCommand, UpdogCommand
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -48,7 +48,8 @@ class IRCBot():
             'sentiment': SentimentCommand(self),
             'time': TimeCommand(self),
             'date': DateCommand(self),
-            'uptime': UptimeCommand(self)
+            'uptime': UptimeCommand(self),
+            'updog': UpdogCommand(self)
         }
         self.max_command_length_ = self.get_max_command_length()
         self.responses_ = self.get_responses()
