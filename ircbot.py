@@ -58,8 +58,9 @@ class IRCBot():
         self.max_command_length_ = self.get_max_command_length()
         self.min_msg_interval_ = 1.5
         self.last_msg_time_ = 0.0
-        self.re_nick_interval_ = 60.0*15
-        self.re_files_txt_interval_ = 60.0*2
+        self.re_connect_interval_ = 60.0*5
+        self.last_ping_time_ = time.time()
+        self.re_files_txt_interval_ = 60.0*15
         self.version_ = __version__
         self.creation_time_ = time.time()
 
@@ -136,6 +137,11 @@ class IRCBot():
             target=self.re_read_txt_database_loop)
         t_read_database.start()
 
+        # Thread to check if re-connection is required
+        t_reconnect = threading.Thread(
+            target=self.check_reconnect_loop)
+        t_reconnect.start()
+
         # Thread to continuously receive and parse messages
         t_recv_parse_msg = threading.Thread(
             target=self.receive_and_parse_msg_loop)
@@ -145,6 +151,14 @@ class IRCBot():
         while True:
             self.responses_, self.bot_bros_ = self.read_db_txt_files()
             time.sleep(self.re_files_txt_interval_)
+
+    def check_reconnect_loop(self):
+        while True:
+            if ((time.time() - self.last_ping_time_) >
+                    self.re_connect_interval_):
+                logging.info("Reconnecting...")
+                self.connect()
+            time.sleep(self.re_connect_interval_)
 
     def receive_and_parse_msg_loop(self):
         while True:
@@ -209,6 +223,7 @@ class IRCBot():
 
         elif ircmsg.find("PING :") != -1:
             self.ping(ircmsg)
+            self.last_ping_time_ = time.time()
         elif ircmsg.find("NOTICE") != -1:
             if ircmsg.find(":You are now logged in as " +
                            self.nick_) != -1:
