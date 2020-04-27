@@ -88,7 +88,9 @@ class IRCBot():
         self.ircsock_.send(bytes("JOIN " + chan + "\n", "UTF-8"))
 
     def ping(self, msg):
-        self.ircsock_.send(bytes('PONG ' + msg.split()[1] + '\r\n', "UTF-8"))
+        # PING code can be in a multiline message
+        ping_code = msg[msg.rindex('PING') + len('PING :'):]
+        self.ircsock_.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
 
     def sendmsg(self, msg, target):
         self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
