@@ -6,11 +6,12 @@ __license__ = "MIT"
 # * Fix NickServ resetting nick
 import logging
 import os
-import socket
-import time
 import random
+import select
+import socket
 import string
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 # Own
@@ -33,6 +34,7 @@ class IRCBot():
     def __init__(self, server, channel, nick, password, adminname,
                  exitcode, command_prefix):
         self.ircsock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket_timeout_ = 60*3  # 2 min pings on snoonet
         self.server_ = server
         self.channel_ = channel
         self.nick_ = nick
@@ -58,19 +60,29 @@ class IRCBot():
         self.max_command_length_ = self.get_max_command_length()
         self.min_msg_interval_ = 1.5
         self.last_msg_time_ = 0.0
-        self.re_connect_interval_ = 60.0*5
         self.last_ping_time_ = time.time()
         self.re_files_txt_interval_ = 60.0*15
         self.version_ = __version__
         self.creation_time_ = time.time()
 
-    def connect(self):
-        self.ircsock_.connect((self.server_, 6667))
+    def connect(self, reconnect=False):
+        if reconnect:
+            # self.ircsock_.close()
+            self.ircsock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.ircsock_.connect((self.server_, 6667))
+        except socket.gaierror as e:
+            logging.error(e)
+            return False
+
+        logging.info("socket connection established")
         self.ircsock_.send(bytes("PASS " + self.password_ + "\n", "UTF-8"))
         self.ircsock_.send(bytes("USER " + self.nick_ + " " + self.nick_ +
                                  " " + self.nick_ + ":snoobotasmo .\n",
                                  "UTF-8"))
         self.ircsock_.send(bytes("NICK " + self.nick_ + "\n", "UTF-8"))
+        logging.info("initial IRC connection successful")
+        return True
 
     def join(self, chan):
         self.ircsock_.send(bytes("JOIN " + chan + "\n", "UTF-8"))
@@ -97,11 +109,21 @@ class IRCBot():
         self.ircsock_.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
 
     def receivemsg(self):
-        ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
+        # Timeout when connection is lost
+        self.ircsock_.setblocking(False)
+        ready = select.select([self.ircsock_], [], [], self.socket_timeout_)
+        ircmsg = ""
+        if ready[0]:
+            try:
+                ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
+            except OSError as e:
+                logging.error(e)
+                return ircmsg
         ircmsg = ircmsg.strip('\n\r')
         sepmsg = "ircmsg:"
         logging.info("%s %s", sepmsg, "-"*(int(termcolumns)-len(sepmsg)-30))
         logging.info(ircmsg)
+        self.ircsock_.setblocking(True)
         return ircmsg
 
     def get_max_command_length(self):
@@ -137,11 +159,6 @@ class IRCBot():
             target=self.re_read_txt_database_loop)
         t_read_database.start()
 
-        # Thread to check if re-connection is required
-        t_reconnect = threading.Thread(
-            target=self.check_reconnect_loop)
-        t_reconnect.start()
-
         # Thread to continuously receive and parse messages
         t_recv_parse_msg = threading.Thread(
             target=self.receive_and_parse_msg_loop)
@@ -152,20 +169,23 @@ class IRCBot():
             self.responses_, self.bot_bros_ = self.read_db_txt_files()
             time.sleep(self.re_files_txt_interval_)
 
-    def check_reconnect_loop(self):
-        while True:
-            if ((time.time() - self.last_ping_time_) >
-                    self.re_connect_interval_):
-                logging.info("Reconnecting...")
-                self.connect()
-            time.sleep(self.re_connect_interval_)
-
     def receive_and_parse_msg_loop(self):
-        while True:
+        logging.debug("receive_and_parse_msg_loop started")
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
             self.receive_and_parse_msg()
+        logging.debug("receive_and_parse_msg_loop stopped")
 
     def receive_and_parse_msg(self):
+        logging.debug("before self.receivemsg()")
         ircmsg = self.receivemsg()
+        logging.debug("after self.receivemsg()")
+
+        if not ircmsg:
+            logging.info("empty ircmsg possibly due to timeout/no connection")
+            self.connect(reconnect=True)
+            time.sleep(self.socket_timeout_ / 10)
+            return
 
         if ircmsg.find("PRIVMSG") != -1:
             name = ircmsg.split('!', 1)[0][1:]
@@ -230,4 +250,3 @@ class IRCBot():
                 self.join(self.channel_)
         elif ircmsg.find("ERROR") != -1:
             logging.error(ircmsg)
-            return
