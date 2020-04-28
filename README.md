@@ -1,10 +1,18 @@
 # ircbot
-Smol IRC bot
+Smol IRC bot :robot:
 
 Tested with [irc.snoonet.org](https://snoonet.org/)
 
+## Features
+* Automatic reconnect on connection loss
+* Live injection of new responses at runtime
+* Variable command prefix
+* Easy new command addition
+  * As simple as creating a new subclass in `commands.py`
+
 ## Usage
-Start it once on your server and use the commands within your IRC client.
+Start it once on your server and use the commands within your IRC client.  
+See an example in `ircbotclient.py`.
 
 ### Server
 ```
@@ -18,6 +26,10 @@ Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclien
 \help
 \cmds
 \about
+\uptime
+\date
+\time
+\lastseen
 ...
 ```
 
