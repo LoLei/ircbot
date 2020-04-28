@@ -8,7 +8,7 @@ Tested with [irc.snoonet.org](https://snoonet.org/)
 * Live injection of new responses at runtime
 * Variable command prefix
 * Easy new command addition
-  * As simple as creating a new subclass in `commands.py`
+  * As simple as creating a new subclass in `command.py`
 
 ## Usage
 Start it once on your server and use the commands within your IRC client.  
