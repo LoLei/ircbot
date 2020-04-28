@@ -172,16 +172,12 @@ class IRCBot():
             time.sleep(self.re_files_txt_interval_)
 
     def receive_and_parse_msg_loop(self):
-        logging.debug("receive_and_parse_msg_loop started")
         t = threading.currentThread()
         while getattr(t, "do_run", True):
             self.receive_and_parse_msg()
-        logging.debug("receive_and_parse_msg_loop stopped")
 
     def receive_and_parse_msg(self):
-        logging.debug("before self.receivemsg()")
         ircmsg = self.receivemsg()
-        logging.debug("after self.receivemsg()")
 
         if not ircmsg:
             logging.info("empty ircmsg possibly due to timeout/no connection")
