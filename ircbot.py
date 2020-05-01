@@ -210,7 +210,7 @@ class IRCBot():
                         "Too many interactions, trigger_user: %s", name)
                     return
                 if name in self.bot_bros_:
-                    if random.random() < 0.1:
+                    if random.random() < 0.01:
                         self.sendmsg(
                             "{} is my bot-bro.".format(name),
                             self.channel_)
