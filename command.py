@@ -103,15 +103,15 @@ class LmCommand(Command):
         if len(incoming_message.split(' ')) > 2:
             case_insensitive = True
 
+        query = name
+        users = self.receiver_.users_hash_map_.copy()
+
         # Case insensitive dict lookup
         # Unfortunately the entire dict needs to be recreated,
         # so do this on-demand only.
-        query = name
-        users = self.receiver_.users_hash_map_.copy()
         if case_insensitive:
             users = {k.lower(): v for k, v in users.items()}
             query = name.lower()
-        for k, v in users.items():
 
         if query in users:
             name = users[query].name_
@@ -174,8 +174,8 @@ class SentimentCommand(Command):
         elif -0.75 > pola >= -1.0:
             pola_str = "very negative"
 
-        msg = "The text: \"{0}\" is {1}.".format(
-            text, pola_str)
+        msg = "The text: \"{0}\" is {1}. ({2})".format(
+            text, pola_str, round(pola, 3))
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 
