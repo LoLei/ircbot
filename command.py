@@ -2,6 +2,7 @@ import datetime
 import time
 from abc import ABC, abstractmethod
 from textblob import TextBlob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 class Command(ABC):
@@ -174,8 +175,18 @@ class SentimentCommand(Command):
         elif -0.75 > pola >= -1.0:
             pola_str = "very negative"
 
-        msg = "The text: \"{0}\" is {1}. ({2})".format(
-            text, pola_str, round(pola, 3))
+        msg_natural = "The text: \"{0}\" is {1}.".format(
+            text, pola_str)
+        msg_textblob = "textblob: {{pol={}, subj={}}}".format(
+            round(blob.sentiment.polarity, 3),
+            round(blob.sentiment.subjectivity, 3))
+
+        analyzer = SentimentIntensityAnalyzer()
+        vs = analyzer.polarity_scores(text)
+        msg_vader = "vader: {}".format(vs)
+
+        msg = msg_natural + " " + msg_textblob + " " + msg_vader
+
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 
