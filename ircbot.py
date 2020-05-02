@@ -3,7 +3,7 @@ __version__ = "0.1337"
 __license__ = "MIT"
 
 # Todos:
-# * Fix NickServ resetting nick
+# * hex converter
 import logging
 import os
 import random
@@ -15,10 +15,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 # Own
-from user import User
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand
+from user import User
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()

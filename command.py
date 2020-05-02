@@ -94,23 +94,30 @@ class LmCommand(Command):
     def execute(self, arg):
         incoming_message = arg
         try:
-            arg = incoming_message.split(' ', 1)[1]
+            name = incoming_message.split(' ')[1]
         except IndexError:
             self.receiver_.sendmsg("I need a name.", self.receiver_.channel_)
             return False
 
-        if arg in self.receiver_.users_hash_map_:
-            name = arg
-            last_message = self.receiver_.users_hash_map_[arg] \
+        case_insensitive = False
+        if len(incoming_message.split(' ')) > 2:
+            case_insensitive = True
+
+        # Case insensitive dict lookup
+        # Unfortunately the entire dict needs to be recreated
+        query = name
+        users = self.receiver_.users_hash_map_.copy()
+        if case_insensitive:
+            users = {k.lower(): v for k, v in users.items()}
+            query = name.lower()
+        for k, v in users.items():
+
+        if query in users:
+            name = users[query].name_
+            last_message = self.receiver_.users_hash_map_[name] \
                 .last_message_
-            last_seen = self.receiver_.users_hash_map_[arg].last_seen_
-            # Yeh just mix string multiline formats to satisfy
-            # PEP8
+            last_seen = self.receiver_.users_hash_map_[name].last_seen_
             msg = ("{0}\'s last message: \"{1}\" at {2}. "
-                   "Do with that what you want. "
-                   "A timestamp is the most bot-readable " +
-                   "format. "
-                   "Who cares about human readability anyway?"
                    ).format(name, last_message, last_seen)
             self.receiver_.sendmsg(msg, self.receiver_.channel_)
         else:
@@ -194,7 +201,8 @@ class DateCommand(Command):
         self.receiver_ = receiver
 
     def execute(self, arg):
-        date_str = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat(' ')
+        date_str = datetime.datetime.utcnow().replace(
+            tzinfo=datetime.timezone.utc).isoformat(' ')
         self.receiver_.sendmsg(date_str, self.receiver_.channel_)
         return True
 
