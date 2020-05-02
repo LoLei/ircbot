@@ -104,7 +104,8 @@ class LmCommand(Command):
             case_insensitive = True
 
         # Case insensitive dict lookup
-        # Unfortunately the entire dict needs to be recreated
+        # Unfortunately the entire dict needs to be recreated,
+        # so do this on-demand only.
         query = name
         users = self.receiver_.users_hash_map_.copy()
         if case_insensitive:
