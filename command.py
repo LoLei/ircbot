@@ -2,6 +2,7 @@ import datetime
 import time
 from abc import ABC, abstractmethod
 from textblob import TextBlob
+from tinydb import TinyDB, Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
@@ -95,37 +96,30 @@ class LmCommand(Command):
     def execute(self, arg):
         incoming_message = arg
         try:
-            name = incoming_message.split(' ')[1]
+            name_query = incoming_message.split(' ')[1]
         except IndexError:
             self.receiver_.sendmsg("I need a name.", self.receiver_.channel_)
             return False
 
+        # Currently unused again after switching to user db
         case_insensitive = False
         if len(incoming_message.split(' ')) > 2:
             case_insensitive = True
 
-        query = name
-        users = self.receiver_.users_hash_map_.copy()
+        user_q = Query()
+        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
 
-        # Case insensitive dict lookup
-        # Unfortunately the entire dict needs to be recreated,
-        # so do this on-demand only.
-        if case_insensitive:
-            users = {k.lower(): v for k, v in users.items()}
-            query = name.lower()
-
-        if query in users:
-            name = users[query].name_
-            last_message = self.receiver_.users_hash_map_[name] \
-                .last_message_
-            last_seen = self.receiver_.users_hash_map_[name].last_seen_
+        if user_q_res:
+            lm = user_q_res['lastmessage']
+            ls = user_q_res['lastseen']
             msg = ("{0}\'s last message: \"{1}\" at {2}. "
-                   ).format(name, last_message, last_seen)
+                   ).format(name_query, lm, ls)
             self.receiver_.sendmsg(msg, self.receiver_.channel_)
         else:
             self.receiver_.sendmsg(
                 "I haven't encountered this user yet.",
                 self.receiver_.channel_)
+
         return True
 
 
@@ -151,12 +145,14 @@ class SentimentCommand(Command):
 
         # Use last message of user if argument is user name,
         # and that name is in the user log
-        if arg in self.receiver_.users_hash_map_:
-            text = self.receiver_.users_hash_map_[arg].last_message_
+        name_query = arg
+        user_q = Query()
+        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
+        if user_q_res:
+            text = user_q_res['lastmessage']
 
         # Else just analyze the text as is
         blob = TextBlob(text)
-        print(blob.sentiment)
         pola = blob.sentiment.polarity
         # subj = blob.sentiment.subjectivity
         pola_str = ""

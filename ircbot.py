@@ -14,11 +14,12 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from tinydb import TinyDB, Query
 # Own
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand
-from user import User
+# from user import User
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -42,7 +43,7 @@ class IRCBot():
         self.adminname_ = adminname
         self.exitcode_ = exitcode
         self.command_prefix_ = command_prefix
-        self.users_hash_map_ = {}
+        self.user_db_ = TinyDB('users.json')
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
         self.commands_ = {
             'help': HelpCommand(self),
@@ -189,12 +190,14 @@ class IRCBot():
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
-            if name not in self.users_hash_map_:
-                new_user = User(name, time.time(), message)
-                self.users_hash_map_[name] = new_user
+            user_q = Query()
+            user_q_res = self.user_db_.search(user_q.name == name)
+            if not user_q_res:
+                self.user_db_.insert({'name': name, 'lastseen': time.time(),
+                                      'lastmessage': message})
             else:
-                self.users_hash_map_[name].last_seen_ = time.time()
-                self.users_hash_map_[name].last_message_ = message
+                self.user_db_.update({'lastseen': time.time(), 'lastmessage':
+                                      message}, user_q.name == name)
 
             if (name.lower() == self.adminname_.lower() and
                     message.rstrip() == self.exitcode_):
