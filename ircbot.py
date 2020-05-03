@@ -4,6 +4,7 @@ __license__ = "MIT"
 
 # Todos:
 # * hex converter
+# * \rant
 import logging
 import os
 import random
