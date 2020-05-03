@@ -6,6 +6,7 @@ Tested with [irc.snoonet.org](https://snoonet.org/)
 ## Features
 * Automatic reconnect on connection loss
 * Live injection of new responses at runtime
+* Persistent user database
 * Variable command prefix
 * Easy new command addition
   * As simple as creating a new subclass in `command.py`
@@ -29,7 +30,7 @@ Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclien
 \uptime
 \date
 \time
-\lastseen
+\lastmessage
 ...
 ```
 
