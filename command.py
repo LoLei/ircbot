@@ -1,5 +1,4 @@
 import datetime
-import pandas as pd
 import time
 from abc import ABC, abstractmethod
 from textblob import TextBlob
