@@ -1,9 +1,11 @@
 import datetime
+import pandas as pd
 import time
 from abc import ABC, abstractmethod
 from textblob import TextBlob
 from tinydb import TinyDB, Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class Command(ABC):
@@ -183,6 +185,50 @@ class SentimentCommand(Command):
 
         msg = msg_natural + " " + msg_textblob + " " + msg_vader
 
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True
+
+
+class FrequentWordsCommand(Command):
+
+    helptext_ = "show a user's most used words"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        incoming_message = arg
+        try:
+            arg = incoming_message.split(' ', 1)[1].strip()
+        except IndexError:
+            self.receiver_.sendmsg("I need a name.",
+                                   self.receiver_.channel_)
+            return False
+
+        name_query = arg
+        user_q = Query()
+        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
+
+        if not user_q_res:
+            self.receiver_.sendmsg(
+                "I haven't encountered this user yet.",
+                self.receiver_.channel_)
+            return True
+
+        msgs = list(user_q_res['messages'])
+
+        n = 10
+        cv = CountVectorizer(stop_words='english')
+        bow = cv.fit_transform(msgs)
+        sums = bow.sum(axis=0)
+        counts = [(word, sums[0, index])
+                  for word, index in cv.vocabulary_.items()]
+        counts = sorted(counts, key=lambda x: x[1], reverse=True)
+        top_n = counts[:n]
+
+        top_n_str = str(top_n)[1:-1]
+        msg = "Most frequent words for {}: {}".format(name_query, top_n_str)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 

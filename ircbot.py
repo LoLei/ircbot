@@ -5,6 +5,7 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
+import collections
 import logging
 import os
 import random
@@ -19,7 +20,7 @@ from tinydb import TinyDB, Query
 # Own
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
-    UptimeCommand, UpdogCommand
+    UptimeCommand, UpdogCommand, FrequentWordsCommand
 # from user import User
 
 # Misc settings
@@ -45,6 +46,7 @@ class IRCBot():
         self.exitcode_ = exitcode
         self.command_prefix_ = command_prefix
         self.user_db_ = TinyDB('users.json')
+        self.user_db_message_log_size_ = 1000
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
         self.commands_ = {
             'help': HelpCommand(self),
@@ -55,7 +57,8 @@ class IRCBot():
             'time': TimeCommand(self),
             'date': DateCommand(self),
             'uptime': UptimeCommand(self),
-            'updog': UpdogCommand(self)
+            'updog': UpdogCommand(self),
+            'words': FrequentWordsCommand(self)
         }
         self.responses_ = []
         self.bot_bros_ = []
@@ -191,14 +194,24 @@ class IRCBot():
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
+            # TODO: Put this in function
             user_q = Query()
-            user_q_res = self.user_db_.search(user_q.name == name)
+            user_q_res = self.user_db_.get(user_q.name == name)
             if not user_q_res:
-                self.user_db_.insert({'name': name, 'lastseen': time.time(),
-                                      'lastmessage': message})
+                msgs = collections.deque(maxlen=self.user_db_message_log_size_)
+                msgs.append(message)
+                self.user_db_.insert({'name': name,
+                                      'lastseen': time.time(),
+                                      'lastmessage': message,
+                                      'messages': list(msgs)})
             else:
-                self.user_db_.update({'lastseen': time.time(), 'lastmessage':
-                                      message}, user_q.name == name)
+                msgs = collections.deque(user_q_res['messages'],
+                                         maxlen=self.user_db_message_log_size_)
+                msgs.append(message)
+                self.user_db_.update({'lastseen': time.time(),
+                                      'lastmessage': message,
+                                      'messages': list(msgs)
+                                      }, user_q.name == name)
 
             if (name.lower() == self.adminname_.lower() and
                     message.rstrip() == self.exitcode_):
