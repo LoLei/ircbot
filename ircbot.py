@@ -20,7 +20,8 @@ from tinydb import TinyDB, Query
 # Own
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
-    UptimeCommand, UpdogCommand, FrequentWordsCommand
+    UptimeCommand, UpdogCommand, FrequentWordsCommand,\
+    WordCloudCommand
 # from user import User
 
 # Misc settings
@@ -58,7 +59,8 @@ class IRCBot():
             'date': DateCommand(self),
             'uptime': UptimeCommand(self),
             'updog': UpdogCommand(self),
-            'words': FrequentWordsCommand(self)
+            'words': FrequentWordsCommand(self),
+            'wordcloud': WordCloudCommand(self)
         }
         self.responses_ = []
         self.bot_bros_ = []
