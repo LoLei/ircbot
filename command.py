@@ -263,12 +263,18 @@ class WordCloudCommand(Command):
                 self.receiver_.channel_)
             return True
 
-        # Generate wordcloud
-        # TODO: Stop word removal
+        # Get all user messages as a string
         name = name_query
         msgs = list(user_q_res['messages'])
         text = ' '.join(msgs)
-        wordloud = WordCloud().generate(text)
+
+        # Add bot commands to list of stop words
+        stopwords = set(STOPWORDS)
+        stopwords.update(self.receiver_.commands_.keys())
+        stopwords.update([name])
+
+        # Generate wordcloud
+        wordloud = WordCloud(stopwords=stopwords).generate(text)
         file_and_path = os.path.join('clouds', name + '.png')
         wordloud.to_file(file_and_path)
 
