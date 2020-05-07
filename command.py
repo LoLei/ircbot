@@ -3,6 +3,7 @@ import os
 import time
 from abc import ABC, abstractmethod
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction import text
 from textblob import TextBlob
 from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -221,8 +222,17 @@ class FrequentWordsCommand(Command):
 
         msgs = list(user_q_res['messages'])
 
+        name = name_query
+
+        # Add bot commands to list of stop words
+        stopwords = set()
+        stopwords.update(self.receiver_.commands_.keys())
+        stopwords.update([name.lower()])
+        stopwords = text.ENGLISH_STOP_WORDS.union(stopwords)
+
+        # Build count vectorizer and count top words
         n = 10
-        cv = CountVectorizer(stop_words='english')
+        cv = CountVectorizer(stop_words=stopwords)
         bow = cv.fit_transform(msgs)
         sums = bow.sum(axis=0)
         counts = [(word, sums[0, index])
@@ -231,7 +241,7 @@ class FrequentWordsCommand(Command):
         top_n = counts[:n]
 
         top_n_str = str(top_n)[1:-1]
-        msg = "Most frequent words for {}: {}".format(name_query, top_n_str)
+        msg = "Most frequent words for {}: {}".format(name, top_n_str)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 
