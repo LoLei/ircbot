@@ -7,6 +7,8 @@ from textblob import TextBlob
 from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+# Own
+from imageuploader import ImageUploader
 
 
 class Command(ABC):
@@ -261,13 +263,25 @@ class WordCloudCommand(Command):
                 self.receiver_.channel_)
             return True
 
+        # Generate wordcloud
+        # TODO: Stop word removal
         name = name_query
         msgs = list(user_q_res['messages'])
         text = ' '.join(msgs)
         wordloud = WordCloud().generate(text)
-        wordloud.to_file(os.path.join('clouds', name + '.png'))
+        file_and_path = os.path.join('clouds', name + '.png')
+        wordloud.to_file(file_and_path)
 
-        msg = "cloud generated for " + name
+        # Upload wordcloud
+        # This could be singleton or saved in invoker instance
+        # As to avoid recreation
+        client_id = os.environ['IMGUR_CLIENT_ID']
+        client_secret = os.environ['IMGUR_CLIENT_SECRET']
+        uploader = ImageUploader(client_id, client_secret)
+        res = uploader.upload(file_and_path)
+
+        msg = "Cloud generated for " + name + ": "
+        msg += res['link']
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 

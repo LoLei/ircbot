@@ -5,6 +5,8 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
+# * Convert many class constructor parameters and environment variables to a
+#   config file (YAML)
 import collections
 import logging
 import os
