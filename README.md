@@ -19,6 +19,7 @@ See an example in `ircbotclient.py`.
 ```
 IRCPW='<password>' ./ircbotclient.py
 ```
+<sup>Also API tokens for Imgur if the `ImageUploader` is to be used.</sup>
 
 Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclient.py` itself.
 
@@ -30,7 +31,10 @@ Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclien
 \uptime
 \date
 \time
-\lastmessage
+\sentiment <text>|<user>
+\lastmessage <user>
+\words <user>
+\wordcloud <user>
 ...
 ```
 
@@ -38,3 +42,8 @@ Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclien
 ```
 git clone https://github.com/LoLei/ircbot ~/git/ircbot
 ```
+
+## Coming Improvements
+* Config file for many of the constructor parameters and environment variables.
+
+## Example wordcloud
