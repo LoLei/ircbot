@@ -37,6 +37,7 @@ Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclien
 \wordcloud <user>
 ...
 ```
+Only the last 1000 messages of users are stored. This parameter can be changed.
 
 ## Installation
 ```
@@ -47,3 +48,6 @@ git clone https://github.com/LoLei/ircbot ~/git/ircbot
 * Config file for many of the constructor parameters and environment variables.
 
 ## Example wordcloud
+<p align="center">
+  <img width="500" height="500" src="https://raw.githubusercontent.com/LoLei/ircbot/master/images/wctux.png">
+</p>
