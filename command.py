@@ -1,7 +1,10 @@
 import datetime
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import time
 from abc import ABC, abstractmethod
+from PIL import Image
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction import text
 from textblob import TextBlob
@@ -283,10 +286,29 @@ class WordCloudCommand(Command):
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name])
 
+        # Get tux outline image
+        mask = np.array(Image.open("images/tux.png"))
+
         # Generate wordcloud
-        wordloud = WordCloud(stopwords=stopwords).generate(text)
+        wc = WordCloud(stopwords=stopwords,
+                       background_color="white",
+                       mask=mask,
+                       # mode="RGBA",
+                       max_words=5000,
+                       # max_font_size=40
+                       )
+        wc.generate(text)
+
+        # Create colormap from image
+        image_colors = ImageColorGenerator(mask)
+        plt.figure(figsize=[9, 9])
+        plt.imshow(wc.recolor(color_func=image_colors),
+                   interpolation="bilinear")
+        plt.axis("off")
+
+        # Save on disk for later upload
         file_and_path = os.path.join('clouds', name + '.png')
-        wordloud.to_file(file_and_path)
+        plt.savefig(file_and_path, format="png")
 
         # Upload wordcloud
         # This could be singleton or saved in invoker instance
@@ -295,6 +317,8 @@ class WordCloudCommand(Command):
         client_secret = os.environ['IMGUR_CLIENT_SECRET']
         uploader = ImageUploader(client_id, client_secret)
         res = uploader.upload(file_and_path)
+
+        os.remove(file_and_path)
 
         msg = "Cloud generated for " + name + ": "
         msg += res['link']
