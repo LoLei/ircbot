@@ -1,6 +1,7 @@
 *.txt
 *.json
 *.png
+!wctux.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
