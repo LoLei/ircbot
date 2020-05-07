@@ -134,8 +134,7 @@ class LmCommand(Command):
 
 class SentimentCommand(Command):
 
-    helptext_ = "<text>/<user> analyze sentiment of a custom text or " +\
-        "a user's last message"
+    helptext_ = "<text>/<user> analyze sentiment"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -198,7 +197,7 @@ class SentimentCommand(Command):
 
 class FrequentWordsCommand(Command):
 
-    helptext_ = "show a user's most used words"
+    helptext_ = "<user> show a user's most used words"
 
     # Receiver = Invoker
     def __init__(self, receiver):
@@ -251,7 +250,7 @@ class FrequentWordsCommand(Command):
 
 class WordCloudCommand(Command):
 
-    helptext_ = "generate a word cloud for a user"
+    helptext_ = "<user> generate a word cloud for a user"
 
     # Receiver = Invoker
     def __init__(self, receiver):
