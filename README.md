@@ -46,8 +46,3 @@ git clone https://github.com/LoLei/ircbot ~/git/ircbot
 
 ## Coming Improvements
 * Config file for many of the constructor parameters and environment variables.
-
-## Example wordcloud
-<p align="center">
-  <img width="500" height="500" src="https://raw.githubusercontent.com/LoLei/ircbot/master/images/wctux.png">
-</p>

@@ -7,6 +7,8 @@ __license__ = "MIT"
 # * \rant
 # * Convert many class constructor parameters and environment variables to a
 #   config file (YAML)
+# * Fix stop word filtering (most like in pre-filtering while tokenizing e.g.
+#   don't into don and t)
 import collections
 import logging
 import os
