@@ -12,6 +12,7 @@ from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 # Own
+import util
 from imageuploader import ImageUploader
 
 
@@ -228,10 +229,9 @@ class FrequentWordsCommand(Command):
         name = name_query
 
         # Add bot commands to list of stop words
-        stopwords = set()
+        stopwords = util.stopwords
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name.lower()])
-        stopwords = text.ENGLISH_STOP_WORDS.union(stopwords)
 
         # Build count vectorizer and count top words
         n = 10
@@ -282,7 +282,7 @@ class WordCloudCommand(Command):
         text = ' '.join(msgs)
 
         # Add bot commands to list of stop words
-        stopwords = set(STOPWORDS)
+        stopwords = util.stopwords
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name])
 
