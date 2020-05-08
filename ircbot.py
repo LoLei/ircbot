@@ -5,8 +5,6 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
-# * Convert many class constructor parameters and environment variables to a
-#   config file (YAML)
 import collections
 import logging
 import os
@@ -38,8 +36,11 @@ assert os.path.isdir(BOT_DIR)
 
 class IRCBot():
     def __init__(self):
+        # Socket
         self.ircsock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_timeout_ = 60*3  # 2 min pings on snoonet
+
+        # User defined options
         self.server_ = CONFIG['server']
         self.channel_ = CONFIG['channel']
         self.nick_ = CONFIG['bot_nick']
@@ -47,9 +48,23 @@ class IRCBot():
         self.adminname_ = CONFIG['admin_name']
         self.exitcode_ = CONFIG['exit_code'].replace('BOTNICK', self.nick_, 1)
         self.command_prefix_ = CONFIG['command_prefix']
+        self.user_db_message_log_size_ = CONFIG['user_db_message_log_size']
         self.user_db_ = TinyDB('users.json')
-        self.user_db_message_log_size_ = 1000
+
+        # Default memvars
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
+        self.commands_ = dict()
+        self.responses_ = []
+        self.bot_bros_ = []
+        self.max_command_length_ = self.get_max_command_length()
+        self.min_msg_interval_ = 1.5
+        self.last_msg_time_ = 0.0
+        self.last_ping_time_ = time.time()
+        self.re_files_txt_interval_ = 60.0*15
+        self.version_ = __version__
+        self.creation_time_ = time.time()
+
+    def create_commands(self):
         self.commands_ = {
             'help': HelpCommand(self),
             'cmds': CommandCommand(self),
@@ -63,15 +78,6 @@ class IRCBot():
             'words': FrequentWordsCommand(self),
             'wordcloud': WordCloudCommand(self)
         }
-        self.responses_ = []
-        self.bot_bros_ = []
-        self.max_command_length_ = self.get_max_command_length()
-        self.min_msg_interval_ = 1.5
-        self.last_msg_time_ = 0.0
-        self.last_ping_time_ = time.time()
-        self.re_files_txt_interval_ = 60.0*15
-        self.version_ = __version__
-        self.creation_time_ = time.time()
 
     def connect(self, reconnect=False):
         if reconnect:

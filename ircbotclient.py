@@ -4,6 +4,7 @@ from ircbot import IRCBot
 
 
 def main():
+    # Define server, channel, nick, etc. in config.yaml
     ircbot = IRCBot()
     ircbot.run()
 
