@@ -12,8 +12,8 @@ from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 # Own
+import imageuploader
 import util
-from imageuploader import ImageUploader
 
 
 class Command(ABC):
@@ -311,12 +311,7 @@ class WordCloudCommand(Command):
         plt.savefig(file_and_path, format="png")
 
         # Upload wordcloud
-        # This could be singleton or saved in invoker instance
-        # As to avoid recreation
-        client_id = os.environ['IMGUR_CLIENT_ID']
-        client_secret = os.environ['IMGUR_CLIENT_SECRET']
-        uploader = ImageUploader(client_id, client_secret)
-        res = uploader.upload(file_and_path)
+        res = imageuploader.upload(file_and_path)
 
         os.remove(file_and_path)
 

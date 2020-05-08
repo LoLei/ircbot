@@ -45,7 +45,7 @@ class IRCBot():
         self.nick_ = CONFIG['bot_nick']
         self.password_ = CONFIG['password']
         self.adminname_ = CONFIG['admin_name']
-        self.exitcode_ = CONFIG['exit_code']
+        self.exitcode_ = CONFIG['exit_code'].replace('BOTNICK', self.nick_, 1)
         self.command_prefix_ = CONFIG['command_prefix']
         self.user_db_ = TinyDB('users.json')
         self.user_db_message_log_size_ = 1000

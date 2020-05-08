@@ -1,10 +1,13 @@
 from imgurpython import ImgurClient
+# Own
+from settings import CONFIG
 
 
-class ImageUploader():
+CLIENT = ImgurClient(
+    CONFIG['imgur_client_id'],
+    CONFIG['imgur_client_secret']
+    )
 
-    def __init__(self, client_id, client_secret):
-        self.client_ = ImgurClient(client_id, client_secret)
 
-    def upload(self, path):
-        return self.client_.upload_from_path(path, config=None, anon=True)
+def upload(path):
+    return CLIENT.upload_from_path(path, config=None, anon=True)
