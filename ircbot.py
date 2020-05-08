@@ -24,7 +24,7 @@ from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand, FrequentWordsCommand,\
     WordCloudCommand
-# from user import User
+from settings import CONFIG
 
 # Misc settings
 termrows, termcolumns = os.popen('stty size', 'r').read().split()
@@ -37,17 +37,16 @@ assert os.path.isdir(BOT_DIR)
 
 
 class IRCBot():
-    def __init__(self, server, channel, nick, password, adminname,
-                 exitcode, command_prefix):
+    def __init__(self):
         self.ircsock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_timeout_ = 60*3  # 2 min pings on snoonet
-        self.server_ = server
-        self.channel_ = channel
-        self.nick_ = nick
-        self.password_ = password
-        self.adminname_ = adminname
-        self.exitcode_ = exitcode
-        self.command_prefix_ = command_prefix
+        self.server_ = CONFIG['server']
+        self.channel_ = CONFIG['channel']
+        self.nick_ = CONFIG['bot_nick']
+        self.password_ = CONFIG['password']
+        self.adminname_ = CONFIG['admin_name']
+        self.exitcode_ = CONFIG['exit_code']
+        self.command_prefix_ = CONFIG['command_prefix']
         self.user_db_ = TinyDB('users.json')
         self.user_db_message_log_size_ = 1000
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
