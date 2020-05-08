@@ -102,6 +102,8 @@ class IRCBot():
         self.ircsock_.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
 
     def sendmsg(self, msg, target):
+        # TODO: Handle sending a message that is longer than the max IRC message
+        #       length, i.e. split it up into multiple messages
         self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
                                  "\n", "UTF-8"))
         return True
@@ -120,6 +122,8 @@ class IRCBot():
         self.ircsock_.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
 
     def receivemsg(self):
+        # TODO: Handle more or less than one incoming message in the stream of
+        #       bytes in one call of receivemsg
         # Timeout when connection is lost
         self.ircsock_.setblocking(False)
         ready = select.select([self.ircsock_], [], [], self.socket_timeout_)
