@@ -207,24 +207,8 @@ class IRCBot():
             name = ircmsg.split('!', 1)[0][1:]
             message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
 
-            # TODO: Put this in function
-            user_q = Query()
-            user_q_res = self.user_db_.get(user_q.name == name)
-            if not user_q_res:
-                msgs = collections.deque(maxlen=self.user_db_message_log_size_)
-                msgs.append(message)
-                self.user_db_.insert({'name': name,
-                                      'lastseen': time.time(),
-                                      'lastmessage': message,
-                                      'messages': list(msgs)})
-            else:
-                msgs = collections.deque(user_q_res['messages'],
-                                         maxlen=self.user_db_message_log_size_)
-                msgs.append(message)
-                self.user_db_.update({'lastseen': time.time(),
-                                      'lastmessage': message,
-                                      'messages': list(msgs)
-                                      }, user_q.name == name)
+            # Put user in data base or update existing user
+            self.handle_user_on_message(name, message)
 
             if (name.lower() == self.adminname_.lower() and
                     message.rstrip() == self.exitcode_):
@@ -278,3 +262,22 @@ class IRCBot():
                 self.join(self.channel_)
         elif ircmsg.find("ERROR") != -1:
             logging.error(ircmsg)
+
+    def handle_user_on_message(self, name, message):
+        user_q = Query()
+        user_q_res = self.user_db_.get(user_q.name == name)
+        if not user_q_res:
+            msgs = collections.deque(maxlen=self.user_db_message_log_size_)
+            msgs.append(message)
+            self.user_db_.insert({'name': name,
+                                  'lastseen': time.time(),
+                                  'lastmessage': message,
+                                  'messages': list(msgs)})
+        else:
+            msgs = collections.deque(user_q_res['messages'],
+                                     maxlen=self.user_db_message_log_size_)
+            msgs.append(message)
+            self.user_db_.update({'lastseen': time.time(),
+                                  'lastmessage': message,
+                                  'messages': list(msgs)
+                                  }, user_q.name == name)

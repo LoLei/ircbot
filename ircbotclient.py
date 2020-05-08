@@ -5,6 +5,7 @@ from ircbot import IRCBot
 
 def main():
     # Define server, channel, nick, etc. in config.yaml
+    # TODO: Make a CLI
     ircbot = IRCBot()
     ircbot.run()
 
