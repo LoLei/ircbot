@@ -1,0 +1,8 @@
+server: irc.snoonet.org
+channel: '#linuxmasterrace'
+bot_nick: muh_bot
+password: <password>
+admin_name: Asmodean
+exit_code: Be gone {{botnick}}
+command_prefix: '\'
+stopwords: [http, https, www]

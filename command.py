@@ -229,7 +229,7 @@ class FrequentWordsCommand(Command):
         name = name_query
 
         # Add bot commands to list of stop words
-        stopwords = util.stopwords
+        stopwords = util.STOPWORDS
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name.lower()])
 
@@ -282,7 +282,7 @@ class WordCloudCommand(Command):
         text = ' '.join(msgs)
 
         # Add bot commands to list of stop words
-        stopwords = util.stopwords
+        stopwords = util.STOPWORDS
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name])
 

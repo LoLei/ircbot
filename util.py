@@ -1,26 +1,37 @@
 from sklearn.feature_extraction import text
-from wordcloud import STOPWORDS
+from wordcloud import STOPWORDS as WCSTOPWORDS
+# Own
+import settings
 
-stopwords = set()
 
-# stop words from sklearn
-stopwords = stopwords.union(text.ENGLISH_STOP_WORDS)
+def get_stopwords():
 
-# stop words from wordcloud
-stopwords = STOPWORDS.union(stopwords)
+    stopwords = set()
 
-# custom stopwords
-# from config and/or bot commands
-stopwords.update(['http', 'https'])
+    # stop words from sklearn
+    stopwords = stopwords.union(text.ENGLISH_STOP_WORDS)
 
-# Adapt for how wordcloud and sklearn CountVectorizer handle stop words
-# Satisfy both
-preprocessed_stopwords = []
-for sw in stopwords:
-    if '\'' not in sw:
-        continue
-    parts = sw.split('\'')
-    preprocessed_stopwords.append(parts[0])
-    preprocessed_stopwords.append(parts[1])
+    # stop words from wordcloud
+    stopwords = WCSTOPWORDS.union(stopwords)
 
-stopwords.update(preprocessed_stopwords)
+    # custom stopwords
+    # from config and/or bot commands
+    user_stopwords = settings.CONFIG['stopwords']
+    stopwords.update(user_stopwords)
+
+    # Adapt for how wordcloud and sklearn CountVectorizer handle stop words
+    # Satisfy both
+    preprocessed_stopwords = []
+    for sw in stopwords:
+        if '\'' not in sw:
+            continue
+        parts = sw.split('\'')
+        preprocessed_stopwords.append(parts[0])
+        preprocessed_stopwords.append(parts[1])
+
+    stopwords.update(preprocessed_stopwords)
+
+    return stopwords
+
+
+STOPWORDS = get_stopwords()
