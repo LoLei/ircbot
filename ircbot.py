@@ -53,7 +53,7 @@ class IRCBot():
 
         # Default memvars
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
-        self.commands_ = dict()
+        self.commands_ = self.create_commands()
         self.responses_ = []
         self.bot_bros_ = []
         self.max_command_length_ = self.get_max_command_length()
@@ -65,7 +65,7 @@ class IRCBot():
         self.creation_time_ = time.time()
 
     def create_commands(self):
-        self.commands_ = {
+        return {
             'help': HelpCommand(self),
             'cmds': CommandCommand(self),
             'about': AboutCommand(self),
