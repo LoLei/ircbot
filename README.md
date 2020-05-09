@@ -17,11 +17,9 @@ See an example in `ircbotclient.py`.
 
 ### Server
 ```
-IRCPW='<password>' ./ircbotclient.py
+./ircbotclient.py
 ```
-<sup>Also API tokens for Imgur if the `ImageUploader` is to be used.</sup>
-
-Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclient.py` itself.
+Configure settings (nick, server, channel, command prefix, etc.) in `config.yaml`.
 
 ### Client
 ```
@@ -44,5 +42,7 @@ Only the last 1000 messages of users are stored. This parameter can be changed.
 git clone https://github.com/LoLei/ircbot ~/git/ircbot
 ```
 
-## Coming Improvements
-* Config file for many of the constructor parameters and environment variables.
+## Example User Word Cloud
+<p align="center">
+  <img width="500" height="500" src="https://raw.githubusercontent.com/LoLei/ircbot/master/images/wctux.png">
+</p>
