@@ -13,11 +13,10 @@ Tested with [irc.snoonet.org](https://snoonet.org/)
 
 ## Usage
 Start it once on your server and use the commands within your IRC client.  
-See an example in `ircbotclient.py`.
 
 ### Server
 ```
-./ircbotclient.py
+./ircbotserver.py
 ```
 Configure settings (nick, server, channel, command prefix, etc.) in `config.yaml`.
 
