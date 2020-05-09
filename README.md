@@ -17,11 +17,9 @@ See an example in `ircbotclient.py`.
 
 ### Server
 ```
-IRCPW='<password>' ./ircbotclient.py
+./ircbotclient.py
 ```
-<sup>Also API tokens for Imgur if the `ImageUploader` is to be used.</sup>
-
-Set other settings (nick, server, channel, command prefix, etc.) in `ircbotclient.py` itself.
+Configure settings (nick, server, channel, command prefix, etc.) in `config.yaml`.
 
 ### Client
 ```
