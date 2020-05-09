@@ -65,7 +65,7 @@ class CommandCommand(Command):
                 msg = self.receiver_.command_prefix_ + name +\
                     " - " + self.receiver_.commands_[name].helptext_
                 self.receiver_.sendmsg(msg, self.receiver_.channel_)
-                time.sleep(1.25)
+                time.sleep(self.receiver_.repeated_message_sleep_time_)
         else:
             command_names = ""
             for name in self.receiver_.commands_:

@@ -53,6 +53,7 @@ class IRCBot():
 
         # Default memvars
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
+        self.max_message_length_ = 436  # Snoonet
         self.commands_ = self.create_commands()
         self.responses_ = []
         self.bot_bros_ = []
@@ -61,6 +62,7 @@ class IRCBot():
         self.last_msg_time_ = 0.0
         self.last_ping_time_ = time.time()
         self.re_files_txt_interval_ = 60.0*15
+        self.repeated_message_sleep_time_ = 1.25
         self.version_ = __version__
         self.creation_time_ = time.time()
 
@@ -107,8 +109,18 @@ class IRCBot():
         self.ircsock_.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
 
     def sendmsg(self, msg, target):
-        # TODO: Handle sending a message that is longer than the max IRC message
-        #       length, i.e. split it up into multiple messages
+        # Handle sending a message that is longer than the max IRC
+        # message length, i.e. split it up into multiple messages
+        if len(msg) > self.max_message_length_:
+            msg_parts = [msg[i:i + (self.max_message_length_)]
+                         for i in range(0, len(msg), self.max_message_length_)]
+
+            for msg_part in msg_parts:
+                self.ircsock_.send(bytes("PRIVMSG " + target + " :"
+                                         + msg_part + "\n", "UTF-8"))
+                time.sleep(self.repeated_message_sleep_time_)
+            return True
+
         self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
                                  "\n", "UTF-8"))
         return True
@@ -276,7 +288,7 @@ class IRCBot():
 
     def execute_command(self, message):
         command_name = message[1:self.max_command_length_+1].\
-           split()[0]
+            split()[0]
         if command_name in self.commands_:
             self.commands_[command_name].execute(message)
         else:
