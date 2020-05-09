@@ -241,15 +241,7 @@ class IRCBot():
                         return
 
                     # Execute command
-                    command_name = message[1:self.max_command_length_+1].\
-                        split()[0]
-                    if command_name in self.commands_:
-                        self.commands_[command_name].execute(message)
-                    else:
-                        self.sendmsg("Command does not exist. " +
-                                     "Use {}cmds for a list.".
-                                     format(self.command_prefix_),
-                                     self.channel_)
+                    self.execute_command(message)
 
                 self.last_msg_time_ = time.time()
 
@@ -281,3 +273,14 @@ class IRCBot():
                                   'lastmessage': message,
                                   'messages': list(msgs)
                                   }, user_q.name == name)
+
+    def execute_command(self, message):
+        command_name = message[1:self.max_command_length_+1].\
+           split()[0]
+        if command_name in self.commands_:
+            self.commands_[command_name].execute(message)
+        else:
+            self.sendmsg("Command does not exist. " +
+                         "Use {}cmds for a list.".
+                         format(self.command_prefix_),
+                         self.channel_)
