@@ -44,5 +44,7 @@ Only the last 1000 messages of users are stored. This parameter can be changed.
 git clone https://github.com/LoLei/ircbot ~/git/ircbot
 ```
 
-## Coming Improvements
-* Config file for many of the constructor parameters and environment variables.
+## Example User Word Cloud
+<p align="center">
+  <img width="500" height="500" src="https://raw.githubusercontent.com/LoLei/ircbot/master/images/wctux.png">
+</p>
