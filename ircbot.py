@@ -5,6 +5,7 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
+# * \weekday
 import collections
 import logging
 import os
