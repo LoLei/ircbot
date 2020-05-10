@@ -53,7 +53,7 @@ class IRCBot():
 
         # Default memvars
         self.max_user_name_length_ = 17  # Freenode, need to check snoonet
-        self.max_message_length_ = 436  # Snoonet
+        self.max_message_length_ = 0  # Set later
         self.commands_ = self.create_commands()
         self.responses_ = []
         self.bot_bros_ = []
@@ -63,6 +63,7 @@ class IRCBot():
         self.last_ping_time_ = time.time()
         self.re_files_txt_interval_ = 60.0*15
         self.repeated_message_sleep_time_ = 1.25
+        self.user_meta_ = ""  # Set later
         self.version_ = __version__
         self.creation_time_ = time.time()
 
@@ -165,6 +166,15 @@ class IRCBot():
                 max_length = len(command_name)
         return max_length
 
+    def get_max_message_length(self):
+        irc_max_msg_len = 512
+        return irc_max_msg_len - (
+            len(self.user_meta_) +
+            len("PRIVMSG ") +
+            len(self.channel_) +
+            len(" :") +
+            len("\n"))
+
     def get_responses(self):
         with open(os.path.join(BOT_DIR, 'responses.txt')) as f:
             responses = f.readlines()
@@ -264,6 +274,12 @@ class IRCBot():
             if ircmsg.find(":You are now logged in as " +
                            self.nick_) != -1:
                 self.join(self.channel_)
+        elif ircmsg.find("JOIN") != -1:
+            # Grab user meta info similar to USERHOST
+            self.user_meta_ = ircmsg.split(maxsplit=1)[0]
+
+            # Calculate max message length once that info is known
+            self.max_message_length_ = self.get_max_message_length()
         elif ircmsg.find("ERROR") != -1:
             logging.error(ircmsg)
 
