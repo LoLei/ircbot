@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
@@ -346,6 +347,21 @@ class DateCommand(Command):
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
         self.receiver_.sendmsg(date_str, self.receiver_.channel_)
+        return True
+
+
+class WeekdayCommand(Command):
+
+    helptext_ = "show the weekday"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, arg):
+        datetime.datetime.today().weekday()
+        msg = calendar.day_name[datetime.datetime.today().weekday()]
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 
 

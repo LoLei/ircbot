@@ -5,7 +5,6 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
-# * \weekday
 import collections
 import logging
 import os
@@ -22,7 +21,7 @@ from tinydb import TinyDB, Query
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand, FrequentWordsCommand,\
-    WordCloudCommand
+    WordCloudCommand, WeekdayCommand
 from settings import CONFIG
 
 # Misc settings
@@ -70,17 +69,18 @@ class IRCBot():
 
     def create_commands(self):
         return {
-            'help': HelpCommand(self),
-            'cmds': CommandCommand(self),
             'about': AboutCommand(self),
+            'cmds': CommandCommand(self),
+            'date': DateCommand(self),
+            'help': HelpCommand(self),
             'lastmessage': LmCommand(self),
             'sentiment': SentimentCommand(self),
             'time': TimeCommand(self),
-            'date': DateCommand(self),
-            'uptime': UptimeCommand(self),
             'updog': UpdogCommand(self),
-            'words': FrequentWordsCommand(self),
-            'wordcloud': WordCloudCommand(self)
+            'uptime': UptimeCommand(self),
+            'weekday': WeekdayCommand(self),
+            'wordcloud': WordCloudCommand(self),
+            'words': FrequentWordsCommand(self)
         }
 
     def connect(self, reconnect=False):
