@@ -269,8 +269,8 @@ class WordCloudCommand(Command):
 
         use_title = False
         try:
-            incoming_message.split(' ')[2].strip() == "title"
-            use_title = True
+            if incoming_message.split(' ')[2].strip() == "title":
+                use_title = True
         except IndexError:
             pass
 
