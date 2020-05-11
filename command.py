@@ -252,7 +252,7 @@ class FrequentWordsCommand(Command):
 
 class WordCloudCommand(Command):
 
-    helptext_ = "<user> generate a word cloud for a user"
+    helptext_ = "<user> [title] generate a word cloud for a user"
 
     # Receiver = Invoker
     def __init__(self, receiver):
