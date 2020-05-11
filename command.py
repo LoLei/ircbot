@@ -261,11 +261,18 @@ class WordCloudCommand(Command):
     def execute(self, arg):
         incoming_message = arg
         try:
-            arg = incoming_message.split(' ', 1)[1].strip()
+            arg = incoming_message.split(' ')[1].strip()
         except IndexError:
             self.receiver_.sendmsg("I need a name.",
                                    self.receiver_.channel_)
             return False
+
+        use_title = False
+        try:
+            incoming_message.split(' ')[2].strip()
+            use_title = True
+        except IndexError:
+            pass
 
         name_query = arg
         user_q = Query()
@@ -280,7 +287,7 @@ class WordCloudCommand(Command):
         # Get all user messages as a string
         name = name_query
         msgs = list(user_q_res['messages'])
-        text = ' '.join(msgs)
+        user_text = ' '.join(msgs)
 
         # Add bot commands to list of stop words
         stopwords = util.STOPWORDS
@@ -298,7 +305,7 @@ class WordCloudCommand(Command):
                        max_words=5000,
                        # max_font_size=40
                        )
-        wc.generate(text)
+        wc.generate(user_text)
 
         # Create colormap from image
         image_colors = ImageColorGenerator(mask)
@@ -306,6 +313,9 @@ class WordCloudCommand(Command):
         plt.imshow(wc.recolor(color_func=image_colors),
                    interpolation="bilinear")
         plt.axis("off")
+        if use_title:
+            title = f"Wordcloud for {name}"
+            plt.title(title, fontsize=20)
 
         # Save on disk for later upload
         file_and_path = os.path.join('clouds', name + '.png')
