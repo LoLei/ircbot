@@ -314,7 +314,7 @@ class WordCloudCommand(Command):
                    interpolation="bilinear")
         plt.axis("off")
         if use_title:
-            title = f"Wordcloud for {name}"
+            title = "Wordcloud for " + name
             plt.title(title, fontsize=20)
 
         # Save on disk for later upload
