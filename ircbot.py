@@ -5,6 +5,8 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
+# * Send acknowledge message immediately when long process such as wordcloud
+#   starts
 import collections
 import logging
 import os
