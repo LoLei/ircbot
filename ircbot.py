@@ -262,7 +262,7 @@ class IRCBot():
 
                 elif message[:1] == self.command_prefix_:
                     # No command after command prefix
-                    if len(message) == 1:
+                    if len(message.strip()) == 1:
                         return
 
                     # Execute command
