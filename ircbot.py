@@ -7,6 +7,8 @@ __license__ = "MIT"
 # * \rant
 # * Send acknowledge message immediately when long process such as wordcloud
 #   starts
+# * Do spam prevention only for *sending* messages instead of *reading in*
+#   messages
 import collections
 import logging
 import os
