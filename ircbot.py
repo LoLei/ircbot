@@ -154,9 +154,10 @@ class IRCBot():
         if ready[0]:
             try:
                 ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
-            except OSError as e:
+            except (OSError, UnicodeDecodeError) as e:
                 logging.error(e)
-                return ircmsg
+                return "ERROR"
+
         ircmsg = ircmsg.strip('\n\r')
         sepmsg = "ircmsg:"
         logging.info("%s %s", sepmsg, "-"*(int(termcolumns)-len(sepmsg)-30))
