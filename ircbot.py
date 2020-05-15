@@ -9,7 +9,6 @@ __license__ = "MIT"
 #   starts
 # * Do spam prevention only for *sending* messages instead of *reading in*
 #   messages
-# * Send help messages as NOTICE instead of public channel message
 import collections
 import logging
 import os
@@ -265,9 +264,11 @@ class IRCBot():
                         choice = choice.replace("USER", name, 1)
                         self.sendmsg(choice, self.channel_)
 
-                elif message.lower().find('testnotice') != -1:
-                    self.sendmsg("this is a test notice", 'Asmodean',
-                                 notice=True)
+                # TODO: Dynamic trigger words and responses,
+                # Similar to responses.txt
+                elif message.lower().find('distro') != -1:
+                    if random.random() < 0.01:
+                        self.sendmsg("ARCH", self.channel_)
 
                 elif message[:1] == self.command_prefix_:
                     # No command after command prefix
