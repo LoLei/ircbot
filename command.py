@@ -24,7 +24,7 @@ class Command(ABC):
         pass
 
     @abstractmethod
-    def execute(self, arg):
+    def execute(self, args):
         pass
 
 
@@ -36,10 +36,10 @@ class HelpCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         msg = "Use {0}cmds for all commands, and {0}about for more info.".\
             format(self.receiver_.command_prefix_)
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self.receiver_.sendmsg(msg, args[0], notice=True)
         return True
 
 
@@ -51,13 +51,12 @@ class CommandCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
-        incoming_message = arg
+    def execute(self, args):
+        incoming_message = args[1]
         multiline = False
 
         try:
-            arg = incoming_message.split(' ', 1)[1]
-            multiline = bool(arg)
+            multiline = bool(incoming_message.split(' ', 1)[1])
         except IndexError:
             pass
 
@@ -65,14 +64,14 @@ class CommandCommand(Command):
             for name in self.receiver_.commands_:
                 msg = self.receiver_.command_prefix_ + name +\
                     " - " + self.receiver_.commands_[name].helptext_
-                self.receiver_.sendmsg(msg, self.receiver_.channel_)
-                time.sleep(self.receiver_.repeated_message_sleep_time_)
+                self.receiver_.sendmsg(msg, args[0], notice=True)
+                time.sleep(self.receiver_.repeated_message_sleep_time_/10)
         else:
             command_names = ""
             for name in self.receiver_.commands_:
                 command_names += self.receiver_.command_prefix_ + name + " - "\
                     + self.receiver_.commands_[name].helptext_ + ' | '
-            self.receiver_.sendmsg(command_names[:-3], self.receiver_.channel_)
+            self.receiver_.sendmsg(command_names[:-3], args[0], notice=True)
 
         return True
 
@@ -85,7 +84,7 @@ class AboutCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         msg = "I am a smol IRC bot made by " +\
             self.receiver_.adminname_ +\
             ". Mention me by name or use " +\
@@ -105,8 +104,8 @@ class LmCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
-        incoming_message = arg
+    def execute(self, args):
+        incoming_message = args[1]
         try:
             name_query = incoming_message.split(' ')[1]
         except IndexError:
@@ -143,27 +142,28 @@ class SentimentCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
-        incoming_message = arg
+    def execute(self, args):
+        incoming_message = args[1]
         try:
-            arg = incoming_message.split(' ', 1)[1]
+            sentiment_argument = incoming_message.split(' ', 1)[1].strip()
         except IndexError:
             self.receiver_.sendmsg("I need a name or some text.",
                                    self.receiver_.channel_)
             return False
 
-        text = arg
-
         # Use last message of user if argument is user name,
         # and that name is in the user log
-        name_query = arg
+        name_query = sentiment_argument
         user_q = Query()
         user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
         if user_q_res:
-            text = user_q_res['lastmessage']
+            sentiment_text = user_q_res['lastmessage']
 
         # Else just analyze the text as is
-        blob = TextBlob(text)
+        else:
+            sentiment_text = sentiment_argument
+
+        blob = TextBlob(sentiment_text)
         pola = blob.sentiment.polarity
         # subj = blob.sentiment.subjectivity
         pola_str = ""
@@ -183,13 +183,13 @@ class SentimentCommand(Command):
             pola_str = "very negative"
 
         msg_natural = "The text: \"{0}\" is {1}.".format(
-            text, pola_str)
+            sentiment_text, pola_str)
         msg_textblob = "textblob: {{pol={}, subj={}}}".format(
             round(blob.sentiment.polarity, 3),
             round(blob.sentiment.subjectivity, 3))
 
         analyzer = SentimentIntensityAnalyzer()
-        vs = analyzer.polarity_scores(text)
+        vs = analyzer.polarity_scores(sentiment_text)
         msg_vader = "vader: {}".format(vs)
 
         msg = msg_natural + " " + msg_textblob + " " + msg_vader
@@ -206,16 +206,15 @@ class FrequentWordsCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
-        incoming_message = arg
+    def execute(self, args):
+        incoming_message = args[1]
         try:
-            arg = incoming_message.split(' ', 1)[1].strip()
+            name_query = incoming_message.split(' ', 1)[1].strip()
         except IndexError:
             self.receiver_.sendmsg("I need a name.",
                                    self.receiver_.channel_)
             return False
 
-        name_query = arg
         user_q = Query()
         user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
 
@@ -258,10 +257,10 @@ class WordCloudCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
-        incoming_message = arg
+    def execute(self, args):
+        incoming_message = args[1]
         try:
-            arg = incoming_message.split(' ')[1].strip()
+            name_query = incoming_message.split(' ')[1].strip()
         except IndexError:
             self.receiver_.sendmsg("I need a name.",
                                    self.receiver_.channel_)
@@ -274,7 +273,6 @@ class WordCloudCommand(Command):
         except IndexError:
             pass
 
-        name_query = arg
         user_q = Query()
         user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
 
@@ -344,7 +342,7 @@ class TimeCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         self.receiver_.sendmsg(str(time.time()), self.receiver_.channel_)
         return True
 
@@ -357,7 +355,7 @@ class DateCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
         self.receiver_.sendmsg(date_str, self.receiver_.channel_)
@@ -372,7 +370,7 @@ class WeekdayCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         datetime.datetime.today().weekday()
         msg = calendar.day_name[datetime.datetime.today().weekday()]
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
@@ -387,7 +385,7 @@ class UptimeCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         time_now = time.time()
         diff_sec = time_now - self.receiver_.creation_time_
         diff_time = datetime.timedelta(seconds=int(diff_sec))
@@ -403,7 +401,7 @@ class UpdogCommand(Command):
     def __init__(self, receiver):
         self.receiver_ = receiver
 
-    def execute(self, arg):
+    def execute(self, args):
         msg = "Nothing much, what's up with you?"
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True

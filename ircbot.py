@@ -115,21 +115,22 @@ class IRCBot():
         ping_code = msg[msg.rindex('PING') + len('PING :'):]
         self.ircsock_.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
 
-    def sendmsg(self, msg, target):
+    def sendmsg(self, msg, target, notice=False):
         # Handle sending a message that is longer than the max IRC
         # message length, i.e. split it up into multiple messages
-        if len(msg) > self.max_message_length_:
-            msg_parts = [msg[i:i + (self.max_message_length_)]
-                         for i in range(0, len(msg), self.max_message_length_)]
+        # if len(msg) > self.max_message_length_:
+        msg_parts = [msg[i:i + (self.max_message_length_)]
+                     for i in range(0, len(msg), self.max_message_length_)]
 
-            for msg_part in msg_parts:
-                self.ircsock_.send(bytes("PRIVMSG " + target + " :"
-                                         + msg_part + "\n", "UTF-8"))
-                time.sleep(self.repeated_message_sleep_time_)
-            return True
+        # NOTICE for private messages without separate buffer
+        # PRIVMSG for message to buffer, either nick or channel
+        irc_cmd = "NOTICE " if notice else "PRIVMSG "
+        separator = " " if notice else " :"
 
-        self.ircsock_.send(bytes("PRIVMSG " + target + " :" + msg +
-                                 "\n", "UTF-8"))
+        for msg_part in msg_parts:
+            self.ircsock_.send(bytes(irc_cmd + target + separator
+                                     + msg_part + "\n", "UTF-8"))
+            time.sleep(self.repeated_message_sleep_time_)
         return True
 
     def startbatch(self, channel):
@@ -264,13 +265,17 @@ class IRCBot():
                         choice = choice.replace("USER", name, 1)
                         self.sendmsg(choice, self.channel_)
 
+                elif message.lower().find('testnotice') != -1:
+                    self.sendmsg("this is a test notice", 'Asmodean',
+                                 notice=True)
+
                 elif message[:1] == self.command_prefix_:
                     # No command after command prefix
                     if len(message.strip()) == 1:
                         return
 
                     # Execute command
-                    self.execute_command(message)
+                    self.execute_command(name, message)
 
                 self.last_msg_time_ = time.time()
 
@@ -312,11 +317,11 @@ class IRCBot():
                                   'messages': list(msgs)
                                   }, user_q.name == name)
 
-    def execute_command(self, message):
+    def execute_command(self, name, message):
         command_name = message[1:self.max_command_length_+1].\
             split()[0]
         if command_name in self.commands_:
-            self.commands_[command_name].execute(message)
+            self.commands_[command_name].execute([name, message])
         else:
             self.sendmsg("Command does not exist. " +
                          "Use {}cmds for a list.".
