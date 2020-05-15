@@ -283,9 +283,13 @@ class WordCloudCommand(Command):
                 "I haven't encountered this user yet.",
                 self.receiver_.channel_)
             return True
+        name = name_query
+
+        msg = "({}) Cloud generation started. Wait for it...".format(
+                name)
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
 
         # Get all user messages as a string
-        name = name_query
         msgs = list(user_q_res['messages'])
         user_text = ' '.join(msgs)
 
