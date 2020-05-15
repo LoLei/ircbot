@@ -9,6 +9,7 @@ __license__ = "MIT"
 #   starts
 # * Do spam prevention only for *sending* messages instead of *reading in*
 #   messages
+# * Send help messages as NOTICE instead of public channel message
 import collections
 import logging
 import os
