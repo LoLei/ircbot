@@ -36,7 +36,6 @@ I have a 0.0000001 chance of replying to mentions of my name. Guess you got luck
 .fight USER
 .vapor i am not alive, are you?
 .bite USER
-.clinton USER
 .compliment USER
 .hug USER
 .hug USER
