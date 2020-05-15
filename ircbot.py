@@ -10,6 +10,7 @@ __license__ = "MIT"
 # * Do spam prevention only for *sending* messages instead of *reading in*
 #   messages
 import collections
+import json
 import logging
 import os
 import random
@@ -61,8 +62,9 @@ class IRCBot():
         self.commands_ = self.create_commands()
         self.responses_ = []
         self.bot_bros_ = []
+        self.triggers_ = {}
         self.max_command_length_ = self.get_max_command_length()
-        self.min_msg_interval_ = 1.5
+        self.min_msg_interval_ = 1.01
         self.last_msg_time_ = 0.0
         self.last_ping_time_ = time.time()
         self.re_files_txt_interval_ = 60.0*15
@@ -197,8 +199,13 @@ class IRCBot():
         bots = [b.strip() for b in bots]
         return bots
 
+    def get_triggers(self):
+        with open(os.path.join(BOT_DIR, 'triggers.json')) as f:
+            triggers = json.load(f)
+        return triggers
+
     def read_db_txt_files(self):
-        return self.get_responses(), self.get_bot_bros()
+        return self.get_responses(), self.get_bot_bros(), self.get_triggers()
 
     def run(self):
         self.connect()
@@ -215,7 +222,10 @@ class IRCBot():
 
     def re_read_txt_database_loop(self):
         while True:
-            self.responses_, self.bot_bros_ = self.read_db_txt_files()
+            read_ins = self.read_db_txt_files()
+            self.responses_ = read_ins[0]
+            self.bot_bros_ = read_ins[1]
+            self.triggers_ = read_ins[2]
             time.sleep(self.re_files_txt_interval_)
 
     def receive_and_parse_msg_loop(self):
@@ -248,27 +258,26 @@ class IRCBot():
             # Normal user messages/commands
             if len(name) < self.max_user_name_length_:
                 time_now = time.time()
+
                 if (time_now - self.last_msg_time_) < self.min_msg_interval_:
                     logging.info(
                         "Too many interactions, trigger_user: %s", name)
                     return
+
                 if name in self.bot_bros_:
                     if random.random() < 0.01:
                         self.sendmsg(
                             "{} is my bot-bro.".format(name),
                             self.channel_)
+                        return
 
-                elif message.lower().find(self.nick_) != -1:
+                self.respond_to_trigger(message)
+
+                if message.lower().find(self.nick_) != -1:
                     if random.random() < 0.75:
                         choice = random.choice(self.responses_)
                         choice = choice.replace("USER", name, 1)
                         self.sendmsg(choice, self.channel_)
-
-                # TODO: Dynamic trigger words and responses,
-                # Similar to responses.txt
-                elif message.lower().find('distro') != -1:
-                    if random.random() < 0.01:
-                        self.sendmsg("ARCH", self.channel_)
 
                 elif message[:1] == self.command_prefix_:
                     # No command after command prefix
@@ -298,6 +307,15 @@ class IRCBot():
 
         elif ircmsg.find("ERROR") != -1:
             logging.error(ircmsg)
+
+    def respond_to_trigger(self, message):
+        trigger_keys = list(self.triggers_.keys())
+        for trigger_key in trigger_keys:
+            if message.lower().find(trigger_key) != -1:
+                chance = self.triggers_[trigger_key][0]
+                if random.random() < chance:
+                    response = random.choice(self.triggers_[trigger_key][1:])
+                    self.sendmsg(response, self.channel_)
 
     def handle_user_on_message(self, name, message):
         user_q = Query()
