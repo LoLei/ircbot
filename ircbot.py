@@ -9,6 +9,7 @@ __license__ = "MIT"
 #   starts
 # * Do spam prevention only for *sending* messages instead of *reading in*
 #   messages
+# * Increase word cloud resolution
 import collections
 import json
 import logging
