@@ -10,6 +10,7 @@ __license__ = "MIT"
 # * Do spam prevention only for *sending* messages instead of *reading in*
 #   messages
 # * Increase word cloud resolution
+# * Improve stop word removal in wcs
 import collections
 import json
 import logging
