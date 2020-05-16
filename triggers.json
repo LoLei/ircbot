@@ -3,7 +3,8 @@
     0.5,
     "ARCH ARCH ARCH ARCH AAAAAAAAARCH",
     "Install gentoo",
-    "Install LFS"
+    "Install LFS",
+    "Distro? Just write your own operating system..."
   ],
   "alldemtitties": [
     1,
@@ -13,5 +14,23 @@
     0.25,
     "I use Arch btw",
     "Btw I use Arch"
+  ],
+  "microsoft": [
+    0.75,
+    "Microsoft >:(",
+    "Microsoft sucks",
+    "Microsoft is merely pretending to love open source"
+  ],
+  "windows": [
+    0.75,
+    "Windows >:(",
+    "Windows sucks",
+    "Windoze"
+  ],
+  "quack" : [
+    0.05,
+    "Guys it's a duck, shoot it!",
+    "Guys it's a duck, befriend it!",
+    "Duck!"
   ]
 }
