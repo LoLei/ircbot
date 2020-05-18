@@ -1,6 +1,6 @@
 {
   "distro": [
-    0.5,
+    0.25,
     "ARCH ARCH ARCH ARCH AAAAAAAAARCH",
     "Install gentoo",
     "Install LFS",
@@ -16,13 +16,13 @@
     "Btw I use Arch"
   ],
   "microsoft": [
-    0.75,
+    0.05,
     "Microsoft >:(",
     "Microsoft sucks",
     "Microsoft is merely pretending to love open source"
   ],
   "windows": [
-    0.75,
+    0.05,
     "Windows >:(",
     "Windows sucks",
     "Windoze"
@@ -50,6 +50,6 @@
   ],
   "fight ADMIN": [
     1,
-    "TODO"
+    ".gtfb USER"
   ]
 }
