@@ -47,5 +47,9 @@
     ".fight USER",
     ".slap USER",
     ".kill USER"
+  ],
+  "fight ADMIN": [
+    1,
+    "TODO"
   ]
 }

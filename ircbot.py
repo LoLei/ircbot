@@ -11,6 +11,8 @@ __license__ = "MIT"
 #   messages
 # * Increase word cloud resolution
 # * Improve stop word removal in wcs
+# * Do not trigger generic name response after trigger has been triggered that
+#   contains the bot's name
 import collections
 import json
 import logging
