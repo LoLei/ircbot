@@ -284,7 +284,7 @@ class WordCloudCommand(Command):
         name = name_query
 
         msg = "({}) Cloud generation started. Wait for it...".format(
-                name)
+            name)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
 
         # Get all user messages as a string
@@ -403,5 +403,19 @@ class UpdogCommand(Command):
 
     def execute(self, args):
         msg = "Nothing much, what's up with you?"
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True
+
+
+class InterjectCommand(Command):
+
+    helptext_ = "set people right about GNU/Linux"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, args):
+        msg = self.receiver_.triggers_[' linux'][1]
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True

@@ -28,7 +28,7 @@ from tinydb import TinyDB, Query
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand, FrequentWordsCommand,\
-    WordCloudCommand, WeekdayCommand
+    WordCloudCommand, WeekdayCommand, InterjectCommand
 from settings import CONFIG
 
 # Misc settings
@@ -81,6 +81,7 @@ class IRCBot():
             'cmds': CommandCommand(self),
             'date': DateCommand(self),
             'help': HelpCommand(self),
+            'interject': InterjectCommand(self),
             'lastmessage': LmCommand(self),
             'sentiment': SentimentCommand(self),
             'time': TimeCommand(self),
@@ -121,7 +122,6 @@ class IRCBot():
     def sendmsg(self, msg, target, notice=False):
         # Handle sending a message that is longer than the max IRC
         # message length, i.e. split it up into multiple messages
-        # if len(msg) > self.max_message_length_:
         msg_parts = [msg[i:i + (self.max_message_length_)]
                      for i in range(0, len(msg), self.max_message_length_)]
 
