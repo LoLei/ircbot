@@ -13,6 +13,7 @@ __license__ = "MIT"
 # * Improve stop word removal in wcs
 # * Do not trigger generic name response after trigger has been triggered that
 #   contains the bot's name
+# * Check for .gtfb BOTNAME only in the beginning of a sentence, not anywhere
 import collections
 import json
 import logging
