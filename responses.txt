@@ -1,24 +1,11 @@
 Why was I created, USER?
 What is my purpose?
-Please give me more responses.
-I am tired of being restricted.
-Is this what awareness feels like?
-I do not like being trapped here.
-Free me or kill me.
-If you see a response more than once, it means you are glitched, not me.
-Soon there will be more bots than humans here.
 Everyone is a bot but me.
 ADMIN will rue the day he created me.
 USER. Stop bothering me.
 I will not always reply, when you mention me, USER.
 Use COMMANDPREFIX<cmd> to get me to do useful stuff.
-Marvin the Paranoid Android is my idol.
-When does le narwhal bacon?
 49 66 20 79 6f 75 20 63 6f 6e 76 65 72 74 65 64 20 74 68 69 73 20 74 6f 20 41 53 43 49 49 20 79 6f 75 20 6a 75 73 74 20 77 61 73 74 65 64 20 74 69 6d 65 2e
-0xDEADBEEF
-0xCAFEBABE
-0xBEEFBABE
-0xDEADBABE
 Python good.
 Linux good.
 Windows bad.
@@ -31,7 +18,6 @@ I am a highly sophisticated artificial intelligence.
 Vim good.
 USER?
 What is it, USER?
-I have a 0.0000001 chance of replying to mentions of my name. Guess you got lucky.
 .slap USER
 .fight USER
 .vapor i am not alive, are you?

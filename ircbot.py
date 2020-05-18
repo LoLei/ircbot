@@ -72,6 +72,7 @@ class IRCBot():
         self.re_files_txt_interval_ = 60.0*15
         self.repeated_message_sleep_time_ = 1.25
         self.user_meta_ = ""  # Set later
+        self.replace_strings_ = ['ADMIN', 'USER', 'BOTNAME', 'COMMANDPREFIX']
         self.version_ = __version__
         self.creation_time_ = time.time()
 
@@ -204,7 +205,15 @@ class IRCBot():
     def get_triggers(self):
         with open(os.path.join(BOT_DIR, 'triggers.json')) as f:
             triggers = json.load(f)
-        return triggers
+
+        # Replace placeholders in file with variables
+        replaced_triggers = triggers.copy()
+        for key, _ in triggers.items():
+            if set(list(key)) & set('\t'.join(self.replace_strings_)):
+                new_key = key.replace('ADMIN', self.adminname_)
+                new_key = key.replace('BOTNAME', self.nick_)
+                replaced_triggers[new_key] = triggers[key]
+        return replaced_triggers
 
     def read_db_txt_files(self):
         return self.get_responses(), self.get_bot_bros(), self.get_triggers()
@@ -273,7 +282,7 @@ class IRCBot():
                             self.channel_)
                         return
 
-                self.respond_to_trigger(message)
+                self.respond_to_trigger(name, message)
 
                 if message.lower().find(self.nick_) != -1:
                     if random.random() < 0.75:
@@ -310,13 +319,16 @@ class IRCBot():
         elif ircmsg.find("ERROR") != -1:
             logging.error(ircmsg)
 
-    def respond_to_trigger(self, message):
+    def respond_to_trigger(self, name, message):
         trigger_keys = list(self.triggers_.keys())
         for trigger_key in trigger_keys:
             if message.lower().find(trigger_key) != -1:
                 chance = self.triggers_[trigger_key][0]
                 if random.random() < chance:
                     response = random.choice(self.triggers_[trigger_key][1:])
+                    response = response.replace('BOTNAME', self.nick_)
+                    response = response.replace('ADMIN', self.adminname_)
+                    response = response.replace('USER', name)
                     self.sendmsg(response, self.channel_)
 
     def handle_user_on_message(self, name, message):
