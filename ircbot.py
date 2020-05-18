@@ -14,6 +14,7 @@ __license__ = "MIT"
 # * Do not trigger generic name response after trigger has been triggered that
 #   contains the bot's name
 # * Check for .gtfb BOTNAME only in the beginning of a sentence, not anywhere
+# * Lower Windows etc trigger responses chances
 import collections
 import json
 import logging
