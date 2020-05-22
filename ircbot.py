@@ -286,7 +286,7 @@ class IRCBot():
                     return
 
                 if message.lower().find(self.nick_) != -1:
-                    if random.random() < 0.75:
+                    if random.random() < 0.25:
                         choice = random.choice(self.responses_)
                         choice = choice.replace("USER", name, 1)
                         self.sendmsg(choice, self.channel_)
