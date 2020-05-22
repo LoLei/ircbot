@@ -5,14 +5,10 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
-# * Send acknowledge message immediately when long process such as wordcloud
-#   starts
 # * Do spam prevention only for *sending* messages instead of *reading in*
 #   messages
 # * Increase word cloud resolution
 # * Improve stop word removal in wcs
-# * Do not trigger generic name response after trigger has been triggered that
-#   contains the bot's name
 # * Check for .gtfb BOTNAME only in the beginning of a sentence, not anywhere
 # * Lower Windows etc trigger responses chances
 import collections
@@ -286,7 +282,8 @@ class IRCBot():
                             self.channel_)
                         return
 
-                self.respond_to_trigger(name, message)
+                if self.respond_to_trigger(name, message):
+                    return
 
                 if message.lower().find(self.nick_) != -1:
                     if random.random() < 0.75:
@@ -334,6 +331,8 @@ class IRCBot():
                     response = response.replace('ADMIN', self.adminname_)
                     response = response.replace('USER', name)
                     self.sendmsg(response, self.channel_)
+                    return True
+        return False
 
     def handle_user_on_message(self, name, message):
         user_q = Query()
