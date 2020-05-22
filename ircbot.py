@@ -10,7 +10,6 @@ __license__ = "MIT"
 # * Increase word cloud resolution
 # * Improve stop word removal in wcs
 # * Check for .gtfb BOTNAME only in the beginning of a sentence, not anywhere
-# * Lower Windows etc trigger responses chances
 import collections
 import json
 import logging
@@ -210,9 +209,10 @@ class IRCBot():
         replaced_triggers = triggers.copy()
         for key, _ in triggers.items():
             if set(list(key)) & set('\t'.join(self.replace_strings_)):
-                new_key = key.replace('ADMIN', self.adminname_)
-                new_key = key.replace('BOTNAME', self.nick_)
+                new_key = key.replace('ADMIN', self.adminname_.lower())
+                new_key = new_key.replace('BOTNAME', self.nick_.lower())
                 replaced_triggers[new_key] = triggers[key]
+                replaced_triggers.pop(key)
         return replaced_triggers
 
     def read_db_txt_files(self):
@@ -323,7 +323,16 @@ class IRCBot():
     def respond_to_trigger(self, name, message):
         trigger_keys = list(self.triggers_.keys())
         for trigger_key in trigger_keys:
+
+            # Check if message contains trigger key
             if message.lower().find(trigger_key) != -1:
+
+                # Check if trigger key is command
+                if '.' in trigger_key:
+                    # Then it must be at the beginning
+                    if not message.lower().startswith(trigger_key):
+                        return False
+
                 chance = self.triggers_[trigger_key][0]
                 if random.random() < chance:
                     response = random.choice(self.triggers_[trigger_key][1:])

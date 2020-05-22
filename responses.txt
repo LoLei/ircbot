@@ -18,12 +18,5 @@ I am a highly sophisticated artificial intelligence.
 Vim good.
 USER?
 What is it, USER?
-.slap USER
-.fight USER
-.vapor i am not alive, are you?
-.bite USER
 .compliment USER
 .hug USER
-.hug USER
-.insult USER
-.spank USER
