@@ -305,10 +305,8 @@ class IRCBot():
             self.ping(ircmsg)
             self.last_ping_time_ = time.time()
 
-        elif ircmsg.find("NOTICE") != -1 or ircmsg.find("INFO") != -1:
-            if ircmsg.find(":You are now logged in as " +
-                           self.nick_) != -1:
-                self.join(self.channel_)
+        elif ircmsg.find(":You are now logged in as " + self.nick_) != -1:
+            self.join(self.channel_)
 
         elif ircmsg.find("JOIN") != -1:
             # Grab user meta info similar to USERHOST
