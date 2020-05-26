@@ -366,6 +366,10 @@ class IRCBot():
         if command_name in self.commands_:
             self.commands_[command_name].execute([name, message])
         else:
+            if self.channel_ == '#linuxmasterrace':
+                # Thank R0flcopt3r for reduced usability on this channel
+                return
+
             self.sendmsg("Command does not exist. " +
                          "Use {}cmds for a list.".
                          format(self.command_prefix_),
