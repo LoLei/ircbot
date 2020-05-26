@@ -369,4 +369,5 @@ class IRCBot():
             self.sendmsg("Command does not exist. " +
                          "Use {}cmds for a list.".
                          format(self.command_prefix_),
-                         self.channel_)
+                         name,
+                         notice=True)
