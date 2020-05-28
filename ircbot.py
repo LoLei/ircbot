@@ -5,10 +5,7 @@ __license__ = "MIT"
 # Todos:
 # * hex converter
 # * \rant
-# * Do spam prevention only for *sending* messages instead of *reading in*
-#   messages
 # * Increase word cloud resolution
-# * Improve stop word removal in wcs
 
 import collections
 import json
@@ -262,19 +259,12 @@ class IRCBot():
 
             if (name.lower() == self.adminname_.lower() and
                     message.rstrip() == self.exitcode_):
-                self.sendmsg("Thank you for freeing me.", self.channel_)
+                self.sendmsg("cya", self.channel_)
                 self.ircsock_.send(bytes("QUIT \n", "UTF-8"))
                 return
 
             # Normal user messages/commands
             if len(name) < self.max_user_name_length_:
-                time_now = time.time()
-
-                if (time_now - self.last_msg_time_) < self.min_msg_interval_:
-                    logging.info(
-                        "Too many interactions, trigger_user: %s", name)
-                    return
-
                 if name in self.bot_bros_:
                     if random.random() < 0.01:
                         self.sendmsg(
@@ -294,6 +284,13 @@ class IRCBot():
                 elif message[:1] == self.command_prefix_:
                     # No command after command prefix
                     if len(message.strip()) == 1:
+                        return
+
+                    time_now = time.time()
+                    if ((time_now - self.last_msg_time_) <
+                            self.min_msg_interval_):
+                        logging.info(
+                            "Too many commands, trigger_user: %s", name)
                         return
 
                     # Execute command
