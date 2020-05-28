@@ -312,13 +312,13 @@ class WordCloudCommand(Command):
 
         # Create colormap from image
         image_colors = ImageColorGenerator(mask)
-        plt.figure(figsize=[9, 9])
+        plt.figure(figsize=[20, 20])
         plt.imshow(wc.recolor(color_func=image_colors),
                    interpolation="bilinear")
         plt.axis("off")
         if use_title:
             title = "Wordcloud for " + name
-            plt.title(title, fontsize=20)
+            plt.title(title, fontsize=36)
 
         # Save on disk for later upload
         file_and_path = os.path.join('clouds', name + '.png')
