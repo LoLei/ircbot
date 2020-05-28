@@ -298,12 +298,8 @@ class IRCBot():
 
                 self.last_msg_time_ = time.time()
 
-        elif ircmsg.find("PING :") != -1:
-            self.ping(ircmsg)
-            self.last_ping_time_ = time.time()
-
-        elif ircmsg.find(":You are now logged in as " + self.nick_) != -1:
-            self.join(self.channel_)
+        elif ircmsg.find("ERROR") != -1:
+            logging.error(ircmsg)
 
         elif ircmsg.find("JOIN") != -1:
             # Grab user meta info similar to USERHOST
@@ -312,8 +308,13 @@ class IRCBot():
             # Calculate max message length once that info is known
             self.max_message_length_ = self.get_max_message_length()
 
-        elif ircmsg.find("ERROR") != -1:
-            logging.error(ircmsg)
+        if ircmsg.startswith("PING :"):
+            self.ping(ircmsg)
+            self.last_ping_time_ = time.time()
+
+        # PRIVMSG and NOTICE with this are sometimes together
+        if ircmsg.find(":You are now logged in as " + self.nick_) != -1:
+            self.join(self.channel_)
 
     def respond_to_trigger(self, name, message):
         trigger_keys = list(self.triggers_.keys())
