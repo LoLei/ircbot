@@ -225,6 +225,7 @@ class FrequentWordsCommand(Command):
             return True
 
         msgs = list(user_q_res['messages'])
+        msgs = [msg.lower() for msg in msgs]
 
         name = name_query
 
@@ -294,7 +295,7 @@ class WordCloudCommand(Command):
         # Add bot commands to list of stop words
         stopwords = util.STOPWORDS
         stopwords.update(self.receiver_.commands_.keys())
-        stopwords.update([name])
+        stopwords.update([name, name.lower()])
 
         # Get tux outline image
         mask = np.array(Image.open("images/tux.png"))
@@ -307,7 +308,7 @@ class WordCloudCommand(Command):
                        max_words=5000,
                        # max_font_size=40
                        )
-        wc.generate(user_text)
+        wc.generate(user_text.lower())
 
         # Create colormap from image
         image_colors = ImageColorGenerator(mask)
