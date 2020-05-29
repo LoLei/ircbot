@@ -63,7 +63,7 @@ class IRCBot():
         self.triggers_ = {}
         self.max_command_length_ = self.get_max_command_length()
         self.min_msg_interval_ = 1.01
-        self.last_msg_time_ = 0.0
+        self.last_command_time_ = 0.0
         self.last_ping_time_ = time.time()
         self.re_files_txt_interval_ = 60.0*15
         self.repeated_message_sleep_time_ = 1.25
@@ -287,7 +287,7 @@ class IRCBot():
                         return
 
                     time_now = time.time()
-                    if ((time_now - self.last_msg_time_) <
+                    if ((time_now - self.last_command_time_) <
                             self.min_msg_interval_):
                         logging.info(
                             "Too many commands, trigger_user: %s", name)
@@ -295,8 +295,7 @@ class IRCBot():
 
                     # Execute command
                     self.execute_command(name, message)
-
-                self.last_msg_time_ = time.time()
+                    self.last_command_time_ = time.time()
 
         elif ircmsg.find("ERROR") != -1:
             logging.error(ircmsg)
