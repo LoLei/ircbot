@@ -1,24 +1,24 @@
 {
   "distro": [
-    0.25,
+    0.05,
     "ARCH ARCH ARCH ARCH AAAAAAAAARCH",
     "Install gentoo",
     "Install LFS",
     "Distro? Just write your own operating system..."
   ],
   "arch": [
-    0.05,
+    0.01,
     "I use Arch btw",
     "Btw I use Arch"
   ],
   "microsoft": [
-    0.05,
+    0.01,
     "Microsoft >:(",
     "Microsoft sucks",
     "Microsoft is merely pretending to love open source"
   ],
   "windows": [
-    0.05,
+    0.01,
     "Windows >:(",
     "Windows sucks",
     "Windoze"
