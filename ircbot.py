@@ -308,7 +308,7 @@ class IRCBot():
             # Calculate max message length once that info is known
             self.max_message_length_ = self.get_max_message_length()
 
-        if ircmsg.startswith("PING :"):
+        elif ircmsg.find("PING :") != -1:
             self.ping(ircmsg)
             self.last_ping_time_ = time.time()
 
