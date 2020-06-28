@@ -3,6 +3,7 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import re
 import time
 from abc import ABC, abstractmethod
 from PIL import Image
@@ -112,19 +113,15 @@ class LmCommand(Command):
             self.receiver_.sendmsg("I need a name.", self.receiver_.channel_)
             return False
 
-        # Currently unused again after switching to user db
-        case_insensitive = False
-        if len(incoming_message.split(' ')) > 2:
-            case_insensitive = True
-
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
+        user_q_res = self.receiver_.user_db_.search(
+            user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if user_q_res:
-            lm = user_q_res['lastmessage']
-            ls = user_q_res['lastseen']
+            lm = user_q_res[0]['lastmessage']
+            ls = user_q_res[0]['lastseen']
             msg = ("{0}\'s last message: \"{1}\" at {2}. "
-                   ).format(name_query, lm, ls)
+                   ).format(user_q_res[0]['name'], lm, ls)
             self.receiver_.sendmsg(msg, self.receiver_.channel_)
         else:
             self.receiver_.sendmsg(
@@ -155,9 +152,11 @@ class SentimentCommand(Command):
         # and that name is in the user log
         name_query = sentiment_argument
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
+        user_q_res = self.receiver_.user_db_.search(
+            user_q.name.matches(name_query, flags=re.IGNORECASE))
+
         if user_q_res:
-            sentiment_text = user_q_res['lastmessage']
+            sentiment_text = user_q_res[0]['lastmessage']
 
         # Else just analyze the text as is
         else:
@@ -216,7 +215,8 @@ class FrequentWordsCommand(Command):
             return False
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
+        user_q_res = self.receiver_.user_db_.search(
+            user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
             self.receiver_.sendmsg(
@@ -224,10 +224,10 @@ class FrequentWordsCommand(Command):
                 self.receiver_.channel_)
             return True
 
-        msgs = list(user_q_res['messages'])
+        msgs = list(user_q_res[0]['messages'])
         msgs = [msg.lower() for msg in msgs]
 
-        name = name_query
+        name = user_q_res[0]['name']
 
         # Add bot commands to list of stop words
         stopwords = util.STOPWORDS
@@ -275,21 +275,22 @@ class WordCloudCommand(Command):
             pass
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.get(user_q.name == name_query)
+        user_q_res = self.receiver_.user_db_.search(
+            user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
             self.receiver_.sendmsg(
                 "I haven't encountered this user yet.",
                 self.receiver_.channel_)
             return True
-        name = name_query
+        name = user_q_res[0]['name']
 
         msg = "({}) Cloud generation started. Wait for it...".format(
             name)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
 
         # Get all user messages as a string
-        msgs = list(user_q_res['messages'])
+        msgs = list(user_q_res[0]['messages'])
         user_text = ' '.join(msgs)
 
         # Add bot commands to list of stop words
