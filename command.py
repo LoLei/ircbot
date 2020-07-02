@@ -207,9 +207,14 @@ class FrequentWordsCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
+        name_query = incoming_message.split(' ', 1)
         try:
-            name_query = incoming_message.split(' ', 1)[1].strip()
+            name_query = name_query[1].strip()
         except IndexError:
+            self.receiver_.sendmsg("I need a name.",
+                                   self.receiver_.channel_)
+            return False
+        if name_query in ['', '*']:
             self.receiver_.sendmsg("I need a name.",
                                    self.receiver_.channel_)
             return False
