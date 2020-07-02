@@ -28,6 +28,17 @@ class Command(ABC):
     def execute(self, args):
         pass
 
+    @staticmethod
+    def check_name_arg(incoming_message):
+        name_query = incoming_message.split(' ', 1)
+        try:
+            name_query = name_query[1].strip()
+        except IndexError:
+            return False
+        if name_query in ['', '*']:
+            return False
+        return name_query
+
 
 class HelpCommand(Command):
 
@@ -207,16 +218,9 @@ class FrequentWordsCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        name_query = incoming_message.split(' ', 1)
-        try:
-            name_query = name_query[1].strip()
-        except IndexError:
-            self.receiver_.sendmsg("I need a name.",
-                                   self.receiver_.channel_)
-            return False
-        if name_query in ['', '*']:
-            self.receiver_.sendmsg("I need a name.",
-                                   self.receiver_.channel_)
+        name_query = Command.check_name_arg(incoming_message)
+        if not name_query:
+            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
             return False
 
         user_q = Query()
