@@ -118,10 +118,9 @@ class LmCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        try:
-            name_query = incoming_message.split(' ')[1]
-        except IndexError:
-            self.receiver_.sendmsg("I need a name.", self.receiver_.channel_)
+        name_query = Command.check_name_arg(incoming_message)
+        if not name_query:
+            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
             return False
 
         user_q = Query()
@@ -152,16 +151,14 @@ class SentimentCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        try:
-            sentiment_argument = incoming_message.split(' ', 1)[1].strip()
-        except IndexError:
-            self.receiver_.sendmsg("I need a name or some text.",
+        name_query = Command.check_name_arg(incoming_message)
+        if not name_query:
+            self.receiver_.sendmsg('I need a name or some text.',
                                    self.receiver_.channel_)
             return False
 
         # Use last message of user if argument is user name,
         # and that name is in the user log
-        name_query = sentiment_argument
         user_q = Query()
         user_q_res = self.receiver_.user_db_.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
@@ -171,7 +168,7 @@ class SentimentCommand(Command):
 
         # Else just analyze the text as is
         else:
-            sentiment_text = sentiment_argument
+            sentiment_text = name_query
 
         blob = TextBlob(sentiment_text)
         pola = blob.sentiment.polarity
@@ -269,11 +266,9 @@ class WordCloudCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        try:
-            name_query = incoming_message.split(' ')[1].strip()
-        except IndexError:
-            self.receiver_.sendmsg("I need a name.",
-                                   self.receiver_.channel_)
+        name_query = Command.check_name_arg(incoming_message)
+        if not name_query:
+            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
             return False
 
         use_title = False
