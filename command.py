@@ -35,7 +35,7 @@ class Command(ABC):
             name_query = name_query[1].strip()
         except IndexError:
             return False
-        if name_query in ['', '*']:
+        if name_query in ['', '*', '\\']:
             return False
         return name_query
 
