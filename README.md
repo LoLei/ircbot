@@ -11,6 +11,7 @@ Tested with [irc.snoonet.org](https://snoonet.org/)
 * Easy new command addition
   * As simple as creating a new subclass in `command.py`
 * Many built-in commands
+* Dynamic overly-long message splitting (Thanks primitve IRC protocol)
 
 ## Usage
 Start it once on your server and use the commands within your IRC client.  
