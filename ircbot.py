@@ -149,6 +149,7 @@ class IRCBot():
     def receivemsg(self):
         # TODO: Handle more or less than one incoming message in the stream of
         #       bytes in one call of receivemsg
+
         # Timeout when connection is lost
         self.ircsock_.setblocking(False)
         ready = select.select([self.ircsock_], [], [], self.socket_timeout_)
