@@ -1,5 +1,5 @@
 # ircbot
-Smol IRC bot :robot:
+~Small~ bloated IRC bot :robot:
 
 Tested with [irc.snoonet.org](https://snoonet.org/)
 
@@ -10,6 +10,7 @@ Tested with [irc.snoonet.org](https://snoonet.org/)
 * Variable command prefix
 * Easy new command addition
   * As simple as creating a new subclass in `command.py`
+* Many built-in commands
 
 ## Usage
 Start it once on your server and use the commands within your IRC client.  
