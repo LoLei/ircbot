@@ -161,12 +161,16 @@ class IRCBot():
                 logging.error(e)
                 return "ERROR"
 
-        ircmsg = ircmsg.strip('\n\r')
+        ircmsgs = ircmsg.split('\r\n')
+        if len(ircmsgs) > 1 and not ircmsgs[len(ircmsgs) - 1]:
+            del ircmsgs[len(ircmsgs) - 1]
         sepmsg = "ircmsg:"
-        logging.info("%s %s", sepmsg, "-"*(int(termcolumns)-len(sepmsg)-30))
-        logging.info(ircmsg)
+        for ircmsg in ircmsgs:
+            logging.info("%s %s", sepmsg, "-" *
+                         (int(termcolumns)-len(sepmsg)-30))
+            logging.info(ircmsg)
         self.ircsock_.setblocking(True)
-        return ircmsg
+        return ircmsgs
 
     def get_max_command_length(self):
         max_length = 0
@@ -243,8 +247,11 @@ class IRCBot():
             self.receive_and_parse_msg()
 
     def receive_and_parse_msg(self):
-        ircmsg = self.receivemsg()
+        ircmsgs = self.receivemsg()
+        for ircmsg in ircmsgs:
+            self.receive_and_parse_irc_msg(ircmsg)
 
+    def receive_and_parse_irc_msg(self, ircmsg):
         if not ircmsg:
             logging.info("empty ircmsg possibly due to timeout/no connection")
             self.connect(reconnect=True)
