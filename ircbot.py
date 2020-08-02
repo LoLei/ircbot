@@ -2,10 +2,6 @@ __author__ = "Lorenz Leitner"
 __version__ = "0.1337"
 __license__ = "MIT"
 
-# Todos:
-# * hex converter
-# * \rant
-# * Increase word cloud resolution
 
 import collections
 import json
@@ -147,9 +143,6 @@ class IRCBot():
         self.ircsock_.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
 
     def receivemsg(self):
-        # TODO: Handle more or less than one incoming message in the stream of
-        #       bytes in one call of receivemsg
-
         # Timeout when connection is lost
         self.ircsock_.setblocking(False)
         ready = select.select([self.ircsock_], [], [], self.socket_timeout_)
