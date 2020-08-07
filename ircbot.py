@@ -253,7 +253,11 @@ class IRCBot():
 
         if ircmsg.find("PRIVMSG") != -1:
             name = ircmsg.split('!', 1)[0][1:]
-            message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
+            try:
+                message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
+            except IndexError as e:
+                logging.error(e)
+                return
 
             # Put user in data base or update existing user
             self.handle_user_on_message(name, message)
