@@ -20,7 +20,8 @@ from tinydb import TinyDB, Query
 from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand, FrequentWordsCommand,\
-    WordCloudCommand, WeekdayCommand, InterjectCommand
+    WordCloudCommand, WeekdayCommand, InterjectCommand,\
+    CopypastaCommand
 from settings import CONFIG
 
 # Misc settings
@@ -72,6 +73,7 @@ class IRCBot():
         return {
             'about': AboutCommand(self),
             'cmds': CommandCommand(self),
+            'copypasta': CopypastaCommand(self),
             'date': DateCommand(self),
             'help': HelpCommand(self),
             'interject': InterjectCommand(self),

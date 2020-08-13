@@ -5,6 +5,7 @@ import numpy as np
 import os
 import re
 import time
+import copypasta_search as cps
 from abc import ABC, abstractmethod
 from PIL import Image
 from sklearn.feature_extraction.text import CountVectorizer
@@ -29,15 +30,15 @@ class Command(ABC):
         pass
 
     @staticmethod
-    def check_name_arg(incoming_message):
-        name_query = incoming_message.split(' ', 1)
+    def check_arg(incoming_message):
+        query = incoming_message.split(' ', 1)
         try:
-            name_query = name_query[1].strip()
+            query = query[1].strip()
         except IndexError:
             return False
-        if name_query in ['', '*', '\\']:
+        if query in ['', '*', '\\']:
             return False
-        return name_query
+        return query
 
 
 class HelpCommand(Command):
@@ -118,7 +119,7 @@ class LmCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        name_query = Command.check_name_arg(incoming_message)
+        name_query = Command.check_arg(incoming_message)
         if not name_query:
             self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
             return False
@@ -151,7 +152,7 @@ class SentimentCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        name_query = Command.check_name_arg(incoming_message)
+        name_query = Command.check_arg(incoming_message)
         if not name_query:
             self.receiver_.sendmsg('I need a name or some text.',
                                    self.receiver_.channel_)
@@ -215,7 +216,7 @@ class FrequentWordsCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        name_query = Command.check_name_arg(incoming_message)
+        name_query = Command.check_arg(incoming_message)
         if not name_query:
             self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
             return False
@@ -266,7 +267,7 @@ class WordCloudCommand(Command):
 
     def execute(self, args):
         incoming_message = args[1]
-        name_query = Command.check_name_arg(incoming_message)
+        name_query = Command.check_arg(incoming_message)
         if not name_query:
             self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
             return False
@@ -424,4 +425,30 @@ class InterjectCommand(Command):
     def execute(self, args):
         msg = self.receiver_.triggers_[' linux'][1]
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True
+
+
+class CopypastaCommand(Command):
+
+    helptext_ = "<query> get copypasta based on query"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, args):
+        incoming_message = args[1]
+        query = Command.check_arg(incoming_message)
+        if not query:
+            self.receiver_.sendmsg('I need a search term.',
+                                   self.receiver_.channel_)
+            return False
+
+        pasta = cps.get_copypasta(query)
+        pasta = pasta[:self.receiver_.max_message_length_ - 3]
+        pasta = pasta.replace('\n', ' ')
+        pasta = ' '.join(pasta.split())
+        pasta = pasta.strip()
+        pasta += '...'
+        self.receiver_.sendmsg(pasta, self.receiver_.channel_)
         return True
