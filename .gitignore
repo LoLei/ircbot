@@ -3,6 +3,7 @@
 *.png
 !wctux.png
 !triggers.json
+!requirements.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
