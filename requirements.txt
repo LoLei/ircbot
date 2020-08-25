@@ -1,5 +1,5 @@
 PyYAML==5.3.1
-copypasta-search==1.0.1
+copypasta-search==1.1
 imgurpython==1.1.7
 matplotlib==3.3.1
 scikit-learn==0.20.2
