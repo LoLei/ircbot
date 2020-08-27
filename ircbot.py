@@ -67,6 +67,8 @@ class IRCBot():
         self.user_meta_ = ""  # Set later
         self.replace_strings_ = ['ADMIN', 'USER', 'BOTNAME', 'COMMANDPREFIX']
         self.version_ = __version__
+        self.join_time_ = 0.0
+        self.join_delay_ = 10.0
         self.creation_time_ = time.time()
 
     def create_commands(self):
@@ -108,6 +110,7 @@ class IRCBot():
 
     def join(self, chan):
         self.ircsock_.send(bytes("JOIN " + chan + "\n", "UTF-8"))
+        self.join_time_ = time.time()
 
     def ping(self, msg):
         # PING code can be in a multiline message
@@ -254,6 +257,11 @@ class IRCBot():
             return
 
         if ircmsg.find("PRIVMSG") != -1:
+            # Ignore messages the first n seconds after joining
+            # Prevents duplicate parsing of backfeed messages
+            if (time.time() - self.join_time_) < self.join_delay_:
+                return
+
             name = ircmsg.split('!', 1)[0][1:]
             try:
                 message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
