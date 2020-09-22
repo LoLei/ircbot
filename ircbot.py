@@ -21,7 +21,7 @@ from command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand, FrequentWordsCommand,\
     WordCloudCommand, WeekdayCommand, InterjectCommand,\
-    CopypastaCommand
+    CopypastaCommand, ShrugCommand
 from settings import CONFIG
 
 # Misc settings
@@ -81,12 +81,13 @@ class IRCBot():
             'interject': InterjectCommand(self),
             'lastmessage': LmCommand(self),
             'sentiment': SentimentCommand(self),
+            'shrug': ShrugCommand(self),
             'time': TimeCommand(self),
             'updog': UpdogCommand(self),
             'uptime': UptimeCommand(self),
             'weekday': WeekdayCommand(self),
             'wordcloud': WordCloudCommand(self),
-            'words': FrequentWordsCommand(self)
+            'words': FrequentWordsCommand(self),
         }
 
     def connect(self, reconnect=False):

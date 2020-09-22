@@ -452,3 +452,17 @@ class CopypastaCommand(Command):
         pasta += '...'
         self.receiver_.sendmsg(pasta, self.receiver_.channel_)
         return True
+
+
+class ShrugCommand(Command):
+
+    helptext_ = "make the both shrug"
+
+    # Receiver = Invoker
+    def __init__(self, receiver):
+        self.receiver_ = receiver
+
+    def execute(self, args):
+        msg = r"¯\_(ツ)_/¯"
+        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        return True
