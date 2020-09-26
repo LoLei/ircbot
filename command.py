@@ -215,11 +215,11 @@ class FrequentWordsCommand(Command):
         self.receiver_ = receiver
 
     def execute(self, args):
+        trigger_nick = args[0]
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
-            return False
+            name_query = trigger_nick
 
         user_q = Query()
         user_q_res = self.receiver_.user_db_.search(
@@ -252,7 +252,8 @@ class FrequentWordsCommand(Command):
         top_n = counts[:n]
 
         top_n_str = str(top_n)[1:-1]
-        msg = "Most frequent words for {}: {}".format(name, top_n_str)
+        msg = "({}) Most frequent words for {}: {}".format(trigger_nick, name,
+                                                           top_n_str)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
 
@@ -266,11 +267,11 @@ class WordCloudCommand(Command):
         self.receiver_ = receiver
 
     def execute(self, args):
+        trigger_nick = args[0]
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
-            return False
+            name_query = trigger_nick
 
         use_title = False
         try:
@@ -290,8 +291,8 @@ class WordCloudCommand(Command):
             return True
         name = user_q_res[0]['name']
 
-        msg = "({}) Cloud generation started. Wait for it...".format(
-            name)
+        msg = "({}) Cloud generation for nick {} started...".format(
+                trigger_nick, name)
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
 
         # Get all user messages as a string
@@ -456,7 +457,7 @@ class CopypastaCommand(Command):
 
 class ShrugCommand(Command):
 
-    helptext_ = "make the both shrug"
+    helptext_ = "make the bot shrug"
 
     # Receiver = Invoker
     def __init__(self, receiver):
