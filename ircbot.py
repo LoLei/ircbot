@@ -374,8 +374,12 @@ class IRCBot():
                                   }, user_q.name == name)
 
     def execute_command(self, name, message):
-        command_name = message[1:self.max_command_length_+1].\
-            split()[0]
+        print(f'{message=}')
+        print(f'{self.max_command_length_=}')
+        command_name = message[1:self.max_command_length_+1]
+        if not ''.join(command_name.split()):
+            return
+        command_name = command_name.split()[0]
         if command_name in self.commands_:
             self.commands_[command_name].execute([name, message])
         else:
