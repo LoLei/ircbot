@@ -378,8 +378,13 @@ class IRCBot():
         if not ''.join(command_name.split()):
             return
         command_name = command_name.split()[0]
-        if command_name in self.commands_:
-            self.commands_[command_name].execute([name, message])
+
+        try:
+            if command_name in self.commands_:
+                self.commands_[command_name].execute([name, message])
+        except Exception as e:
+            logging.error(e)
+
         else:
             if self.channel_ == '#linuxmasterrace':
                 # Thank R0flcopt3r for reduced usability on this channel
