@@ -1,8 +1,8 @@
 server: irc.snoonet.org
 channel: '#linuxmasterrace'
-bot_nick: muh_bot_
+bot_nick: <bot_nick>
 password: <password>
-admin_name: Asmodean
+admin_name: <admin_name>
 exit_code: Be gone BOTNICK
 command_prefix: '\'
 user_db_message_log_size: 1000
