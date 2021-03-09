@@ -1,19 +1,21 @@
 import calendar
 import datetime
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import re
 import time
-import copypasta_search as cps
 from abc import ABC, abstractmethod
+from typing import List, Tuple, Any
+
+import copypasta_search as cps
+import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction import text
 from textblob import TextBlob
 from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from wordcloud import WordCloud, ImageColorGenerator
+
 # Own
 import imageuploader
 import util
@@ -251,11 +253,24 @@ class FrequentWordsCommand(Command):
         counts = sorted(counts, key=lambda x: x[1], reverse=True)
         top_n = counts[:n]
 
-        top_n_str = str(top_n)[1:-1]
-        msg = "({}) Most frequent words for {}: {}".format(trigger_nick, name,
-                                                           top_n_str)
+        msg = "({}) Top words (of last {}) for {}: {}".format(
+            trigger_nick, self.receiver_.user_db_message_log_size_,
+            name, self.format_count_list(top_n))
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
         return True
+
+    @staticmethod
+    def insert_zero_width_space(word: str) -> str:
+        # Also make it bold
+        return '\x02' + word[:1] + '\u200b' + word[1:] + '\x02'
+
+    @staticmethod
+    def format_count_list(top_n: List[Tuple[str, int]]) -> str:
+        s = ""
+        for (w, c) in top_n:
+            s += FrequentWordsCommand\
+                     .insert_zero_width_space(w) + ": " + str(c) + ", "
+        return s[:-2]
 
 
 class WordCloudCommand(Command):

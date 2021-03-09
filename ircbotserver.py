@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import platform
+
 from ircbot import IRCBot
 
 
 def main():
     # Define server, channel, nick, etc. in config.yaml
+    print(f"Python version: {platform.python_version()}")
     ircbot = IRCBot()
     ircbot.run()
 
