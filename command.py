@@ -253,7 +253,7 @@ class FrequentWordsCommand(Command):
         counts = sorted(counts, key=lambda x: x[1], reverse=True)
         top_n = counts[:n]
 
-        msg = "({}) Top words (of last {}) for {}: {}".format(
+        msg = "({}) Top words (of last {} messages) for {}: {}".format(
             trigger_nick, self.receiver_.user_db_message_log_size_,
             name, self.format_count_list(top_n))
         self.receiver_.sendmsg(msg, self.receiver_.channel_)
