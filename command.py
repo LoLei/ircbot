@@ -4,7 +4,7 @@ import os
 import re
 import time
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Any
+from typing import List, Tuple
 
 import copypasta_search as cps
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ class Command(ABC):
 
     @property
     @abstractmethod
-    def helptext_(self):
+    def helptext(self):
         pass
 
     @abstractmethod
@@ -49,7 +49,7 @@ class Command(ABC):
 
 class HelpCommand(Command):
 
-    helptext_ = "show basic help text"
+    helptext = "show basic help text"
 
     def execute(self, args):
         msg = "Use {0}cmds for all commands, and {0}about for more info.".\
@@ -60,7 +60,7 @@ class HelpCommand(Command):
 
 class CommandCommand(Command):
 
-    helptext_ = "[multiline] list available commands and usages"
+    helptext = "[multiline] list available commands and usages"
 
     def execute(self, args):
         incoming_message = args[1]
@@ -74,14 +74,14 @@ class CommandCommand(Command):
         if multiline:
             for name in self.receiver_.commands_:
                 msg = self.receiver_.command_prefix_ + name +\
-                    " - " + self.receiver_.commands_[name].helptext_
+                    " - " + self.receiver_.commands_[name].helptext
                 self.receiver_.sendmsg(msg, args[0], notice=True)
                 time.sleep(self.receiver_.repeated_message_sleep_time_/10)
         else:
             command_names = ""
             for name in self.receiver_.commands_:
                 command_names += self.receiver_.command_prefix_ + name + " - "\
-                    + self.receiver_.commands_[name].helptext_ + ' | '
+                    + self.receiver_.commands_[name].helptext + ' | '
             self.receiver_.sendmsg(command_names[:-3], args[0], notice=True)
 
         return True
@@ -89,7 +89,7 @@ class CommandCommand(Command):
 
 class AboutCommand(Command):
 
-    helptext_ = "show information about me"
+    helptext = "show information about me"
 
     def execute(self, args):
         msg = "I am a smol IRC bot made by " +\
@@ -105,7 +105,7 @@ class AboutCommand(Command):
 
 class LmCommand(Command):
 
-    helptext_ = "<user> show information about last message of a user"
+    helptext = "<user> show information about last message of a user"
 
     def execute(self, args):
         incoming_message = args[1]
@@ -134,7 +134,7 @@ class LmCommand(Command):
 
 class SentimentCommand(Command):
 
-    helptext_ = "<text>/<user> analyze sentiment"
+    helptext = "<text>/<user> analyze sentiment"
 
     def execute(self, args):
         incoming_message = args[1]
@@ -194,7 +194,7 @@ class SentimentCommand(Command):
 
 class FrequentWordsCommand(Command):
 
-    helptext_ = "<user> show a user's most used words"
+    helptext = "<user> show a user's most used words"
 
     def execute(self, args):
         trigger_nick = args[0]
@@ -255,7 +255,7 @@ class FrequentWordsCommand(Command):
 
 class WordCloudCommand(Command):
 
-    helptext_ = "<user> [title] generate a word cloud for a user"
+    helptext = "<user> [title] generate a word cloud for a user"
 
     def execute(self, args):
         trigger_nick = args[0]
@@ -335,7 +335,7 @@ class WordCloudCommand(Command):
 
 class TimeCommand(Command):
 
-    helptext_ = "show the time"
+    helptext = "show the time"
 
     def execute(self, args):
         self.receiver_.sendmsg(str(time.time()), self.receiver_.channel_)
@@ -344,7 +344,7 @@ class TimeCommand(Command):
 
 class DateCommand(Command):
 
-    helptext_ = "show the date"
+    helptext = "show the date"
 
     def execute(self, args):
         date_str = datetime.datetime.utcnow().replace(
@@ -355,7 +355,7 @@ class DateCommand(Command):
 
 class WeekdayCommand(Command):
 
-    helptext_ = "show the weekday"
+    helptext = "show the weekday"
 
     def execute(self, args):
         datetime.datetime.today().weekday()
@@ -366,7 +366,7 @@ class WeekdayCommand(Command):
 
 class UptimeCommand(Command):
 
-    helptext_ = "show my age"
+    helptext = "show my age"
 
     def execute(self, args):
         time_now = time.time()
@@ -378,7 +378,7 @@ class UptimeCommand(Command):
 
 class UpdogCommand(Command):
 
-    helptext_ = "is it me or does it smell like updog in here"
+    helptext = "is it me or does it smell like updog in here"
 
     def execute(self, args):
         msg = "Nothing much, what's up with you?"
@@ -388,7 +388,7 @@ class UpdogCommand(Command):
 
 class InterjectCommand(Command):
 
-    helptext_ = "set people right about GNU/Linux"
+    helptext = "set people right about GNU/Linux"
 
     def execute(self, args):
         msg = self.receiver_.triggers_[' linux'][1]
@@ -398,7 +398,7 @@ class InterjectCommand(Command):
 
 class CopypastaCommand(Command):
 
-    helptext_ = "<query> get copypasta based on query"
+    helptext = "<query> get copypasta based on query"
 
     def execute(self, args):
         incoming_message = args[1]
@@ -420,7 +420,7 @@ class CopypastaCommand(Command):
 
 class ShrugCommand(Command):
 
-    helptext_ = "make the bot shrug"
+    helptext = "make the bot shrug"
 
     def execute(self, args):
         msg = r"¯\_(ツ)_/¯"

@@ -250,6 +250,18 @@ class IRCBot():
         for ircmsg in ircmsgs:
             self.receive_and_parse_irc_msg(ircmsg)
 
+    def check_if_ignore_messages(self):
+        # Ignore messages the first n seconds after joining
+        # Prevents duplicate parsing of backfeed messages
+        ignoring_messages = True
+        if (time.time() - self.join_time_) < self.join_delay_:
+            logging.info("Still ignoring messages")
+            return
+        elif ignoring_messages:
+            ignoring_messages = False
+            logging.info(
+                f"Stopped ignoring messages after {self.join_delay_} seconds")
+
     def receive_and_parse_irc_msg(self, ircmsg):
         if not ircmsg:
             logging.info("empty ircmsg possibly due to timeout/no connection")
@@ -258,10 +270,7 @@ class IRCBot():
             return
 
         if ircmsg.find("PRIVMSG") != -1:
-            # Ignore messages the first n seconds after joining
-            # Prevents duplicate parsing of backfeed messages
-            if (time.time() - self.join_time_) < self.join_delay_:
-                return
+            self.check_if_ignore_messages()
 
             name = ircmsg.split('!', 1)[0][1:]
             try:
@@ -384,14 +393,3 @@ class IRCBot():
                 self.commands_[command_name].execute([name, message])
         except Exception as e:
             logging.error(e)
-
-        else:
-            if self.channel_ == '#linuxmasterrace':
-                # Thank R0flcopt3r for reduced usability on this channel
-                return
-
-            self.sendmsg("Command does not exist. " +
-                         "Use {}cmds for a list.".
-                         format(self.command_prefix_),
-                         name,
-                         notice=True)
