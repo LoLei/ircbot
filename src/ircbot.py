@@ -14,13 +14,14 @@ import string
 import threading
 import time
 from datetime import datetime
-from pathlib import Path
+
 from tinydb import TinyDB, Query
+
 # Own
-from src.command import HelpCommand, CommandCommand, AboutCommand,\
-    LmCommand, SentimentCommand, TimeCommand, DateCommand,\
-    UptimeCommand, UpdogCommand, FrequentWordsCommand,\
-    WordCloudCommand, WeekdayCommand, InterjectCommand,\
+from src.command import HelpCommand, CommandCommand, AboutCommand, \
+    LmCommand, SentimentCommand, TimeCommand, DateCommand, \
+    UptimeCommand, UpdogCommand, FrequentWordsCommand, \
+    WordCloudCommand, WeekdayCommand, InterjectCommand, \
     CopypastaCommand, ShrugCommand
 from src.settings import CONFIG
 
@@ -28,9 +29,7 @@ from src.settings import CONFIG
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                     filename=datetime.now().strftime(
                         '%Y_%m_%d.log'), level=logging.DEBUG)
-HOME_DIR = str(Path.home())
-BOT_DIR = os.path.join(HOME_DIR, "git/ircbot")
-assert os.path.isdir(BOT_DIR)
+BOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 try:
     _, TERM_COLUMNS = os.popen('stty size', 'r').read().split()
@@ -126,7 +125,7 @@ class IRCBot():
     def sendmsg(self, msg, target, notice=False):
         # Handle sending a message that is longer than the max IRC
         # message length, i.e. split it up into multiple messages
-        msg_parts = [msg[i:i + (self.max_message_length_)]
+        msg_parts = [msg[i:i + self.max_message_length_]
                      for i in range(0, len(msg), self.max_message_length_)]
 
         # NOTICE for private messages without separate buffer
@@ -193,7 +192,7 @@ class IRCBot():
             len("\n"))
 
     def get_responses(self):
-        with open(os.path.join(BOT_DIR, 'responses.txt')) as f:
+        with open(os.path.join(BOT_PATH, 'responses.txt')) as f:
             responses = f.readlines()
         responses = [r.strip() for r in responses]
         responses = [r.replace("ADMIN", self.adminname_, 1) for r in responses]
@@ -202,13 +201,13 @@ class IRCBot():
         return responses
 
     def get_bot_bros(self):
-        with open(os.path.join(BOT_DIR, 'bots.txt')) as f:
+        with open(os.path.join(BOT_PATH, 'bots.txt')) as f:
             bots = f.readlines()
         bots = [b.strip() for b in bots]
         return bots
 
     def get_triggers(self):
-        with open(os.path.join(BOT_DIR, 'triggers.json')) as f:
+        with open(os.path.join(BOT_PATH, 'triggers.json')) as f:
             triggers = json.load(f)
 
         # Replace placeholders in file with variables
