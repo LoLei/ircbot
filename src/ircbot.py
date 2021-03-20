@@ -73,6 +73,7 @@ class IRCBot():
         self.version_ = __version__
         self.join_time_ = 0.0
         self.join_delay_ = 10.0
+        self.ignoring_messages_ = True
         self.creation_time_ = time.time()
 
     def create_commands(self):
@@ -257,14 +258,15 @@ class IRCBot():
     def check_if_ignore_messages(self):
         # Ignore messages the first n seconds after joining
         # Prevents duplicate parsing of backfeed messages
-        ignoring_messages = True
         if (time.time() - self.join_time_) < self.join_delay_:
             logging.info("Still ignoring messages")
-            return
-        elif ignoring_messages:
-            ignoring_messages = False
-            logging.info(
-                f"Stopped ignoring messages after {self.join_delay_} seconds")
+            return True
+        else:
+            if not self.ignoring_messages_:
+                logging.info(
+                    f"Stopped ignoring messages after {self.join_delay_} seconds")
+            self.ignoring_messages_ = False
+            return False
 
     def receive_and_parse_irc_msg(self, ircmsg):
         if not ircmsg:
@@ -274,7 +276,8 @@ class IRCBot():
             return
 
         if ircmsg.find("PRIVMSG") != -1:
-            self.check_if_ignore_messages()
+            if self.check_if_ignore_messages():
+                return
 
             name = ircmsg.split('!', 1)[0][1:]
             try:
