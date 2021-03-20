@@ -16,7 +16,6 @@ from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, ImageColorGenerator
 
-# Own
 from src.imageuploader import upload
 from src.util import STOPWORDS
 
@@ -24,7 +23,7 @@ from src.util import STOPWORDS
 class Command(ABC):
     # Receiver = Invoker
     def __init__(self, receiver):
-        self.receiver_ = receiver
+        self._receiver = receiver
 
     @property
     @abstractmethod
@@ -53,8 +52,8 @@ class HelpCommand(Command):
 
     def execute(self, args):
         msg = "Use {0}cmds for all commands, and {0}about for more info.".\
-            format(self.receiver_.command_prefix_)
-        self.receiver_.sendmsg(msg, args[0], notice=True)
+            format(self._receiver.command_prefix)
+        self._receiver.sendmsg(msg, args[0], notice=True)
         return True
 
 
@@ -72,17 +71,19 @@ class CommandCommand(Command):
             pass
 
         if multiline:
-            for name in self.receiver_.commands_:
-                msg = self.receiver_.command_prefix_ + name +\
-                    " - " + self.receiver_.commands_[name].helptext
-                self.receiver_.sendmsg(msg, args[0], notice=True)
-                time.sleep(self.receiver_.repeated_message_sleep_time_/10)
+            for name in self._receiver.commands:
+                msg = self._receiver.command_prefix + name +\
+                    " - " + self._receiver.commands[name].helptext
+                self._receiver.sendmsg(msg, args[0], notice=True)
+                time.sleep(self._receiver.repeated_message_sleep_time / 10)
         else:
             command_names = ""
-            for name in self.receiver_.commands_:
-                command_names += self.receiver_.command_prefix_ + name + " - "\
-                    + self.receiver_.commands_[name].helptext + ' | '
-            self.receiver_.sendmsg(command_names[:-3], args[0], notice=True)
+            for name in self._receiver.commands:
+                command_names += (self._receiver.command_prefix
+                                  + name + " - "
+                                  + self._receiver.commands[name].helptext
+                                  + ' | ')
+            self._receiver.sendmsg(command_names[:-3], args[0], notice=True)
 
         return True
 
@@ -92,14 +93,14 @@ class AboutCommand(Command):
     helptext = "show information about me"
 
     def execute(self, args):
-        msg = "I am a smol IRC bot made by " +\
-            self.receiver_.adminname_ +\
-            ". Mention me by name or use " +\
-            self.receiver_.command_prefix_ +\
-            " for commands. " +\
-            "Version " + self.receiver_.version_ +\
-            ". Source: https://git.io/JfJ9B"
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        msg = "I am a smol IRC bot made by " + \
+              self._receiver.admin_name +\
+            ". Mention me by name or use " + \
+              self._receiver.command_prefix + \
+              " for commands. " + \
+              "Version " + self._receiver.version + \
+              ". Source: https://git.io/JfJ9B"
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
 
@@ -111,11 +112,11 @@ class LmCommand(Command):
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
+            self._receiver.sendmsg('I need a name.', self._receiver.channel)
             return False
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if user_q_res:
@@ -123,11 +124,11 @@ class LmCommand(Command):
             ls = user_q_res[0]['lastseen']
             msg = ("{0}\'s last message: \"{1}\" at {2}. "
                    ).format(user_q_res[0]['name'], lm, ls)
-            self.receiver_.sendmsg(msg, self.receiver_.channel_)
+            self._receiver.sendmsg(msg, self._receiver.channel)
         else:
-            self.receiver_.sendmsg(
+            self._receiver.sendmsg(
                 "I haven't encountered this user yet.",
-                self.receiver_.channel_)
+                self._receiver.channel)
 
         return True
 
@@ -140,14 +141,14 @@ class SentimentCommand(Command):
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self.receiver_.sendmsg('I need a name or some text.',
-                                   self.receiver_.channel_)
+            self._receiver.sendmsg('I need a name or some text.',
+                                   self._receiver.channel)
             return False
 
         # Use last message of user if argument is user name,
         # and that name is in the user log
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if user_q_res:
@@ -188,7 +189,7 @@ class SentimentCommand(Command):
 
         msg = msg_natural + " " + msg_textblob + " " + msg_vader
 
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
 
@@ -204,13 +205,13 @@ class FrequentWordsCommand(Command):
             name_query = trigger_nick
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self.receiver_.sendmsg(
+            self._receiver.sendmsg(
                 "I haven't encountered this user yet.",
-                self.receiver_.channel_)
+                self._receiver.channel)
             return True
 
         msgs = list(user_q_res[0]['messages'])
@@ -220,7 +221,7 @@ class FrequentWordsCommand(Command):
 
         # Add bot commands to list of stop words
         stopwords = STOPWORDS
-        stopwords.update(self.receiver_.commands_.keys())
+        stopwords.update(self._receiver.commands.keys())
         stopwords.update([name.lower()])
 
         # Build count vectorizer and count top words
@@ -234,9 +235,9 @@ class FrequentWordsCommand(Command):
         top_n = counts[:n]
 
         msg = "({}) Top words (of last {} messages) for {}: {}".format(
-            trigger_nick, self.receiver_.user_db_message_log_size_,
+            trigger_nick, self._receiver.user_db_message_log_size,
             name, self.format_count_list(top_n))
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
     @staticmethod
@@ -272,19 +273,19 @@ class WordCloudCommand(Command):
             pass
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self.receiver_.sendmsg(
+            self._receiver.sendmsg(
                 "I haven't encountered this user yet.",
-                self.receiver_.channel_)
+                self._receiver.channel)
             return True
         name = user_q_res[0]['name']
 
         msg = "({}) Cloud generation for nick {} started...".format(
                 trigger_nick, name)
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
 
         # Get all user messages as a string
         msgs = list(user_q_res[0]['messages'])
@@ -292,7 +293,7 @@ class WordCloudCommand(Command):
 
         # Add bot commands to list of stop words
         stopwords = STOPWORDS
-        stopwords.update(self.receiver_.commands_.keys())
+        stopwords.update(self._receiver.commands.keys())
         stopwords.update([name, name.lower()])
 
         # Get tux outline image
@@ -329,7 +330,7 @@ class WordCloudCommand(Command):
 
         msg = "Cloud generated for " + name + ": "
         msg += res['link']
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
 
@@ -338,7 +339,7 @@ class TimeCommand(Command):
     helptext = "show the time"
 
     def execute(self, args):
-        self.receiver_.sendmsg(str(time.time()), self.receiver_.channel_)
+        self._receiver.sendmsg(str(time.time()), self._receiver.channel)
         return True
 
 
@@ -349,7 +350,7 @@ class DateCommand(Command):
     def execute(self, args):
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
-        self.receiver_.sendmsg(date_str, self.receiver_.channel_)
+        self._receiver.sendmsg(date_str, self._receiver.channel)
         return True
 
 
@@ -360,7 +361,7 @@ class WeekdayCommand(Command):
     def execute(self, args):
         datetime.datetime.today().weekday()
         msg = calendar.day_name[datetime.datetime.today().weekday()]
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
 
@@ -370,9 +371,9 @@ class UptimeCommand(Command):
 
     def execute(self, args):
         time_now = time.time()
-        diff_sec = time_now - self.receiver_.creation_time_
+        diff_sec = time_now - self._receiver.creation_time
         diff_time = datetime.timedelta(seconds=int(diff_sec))
-        self.receiver_.sendmsg(str(diff_time), self.receiver_.channel_)
+        self._receiver.sendmsg(str(diff_time), self._receiver.channel)
         return True
 
 
@@ -382,7 +383,7 @@ class UpdogCommand(Command):
 
     def execute(self, args):
         msg = "Nothing much, what's up with you?"
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
 
@@ -391,8 +392,8 @@ class InterjectCommand(Command):
     helptext = "set people right about GNU/Linux"
 
     def execute(self, args):
-        msg = self.receiver_.triggers_[' linux'][1]
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        msg = self._receiver.triggers[' linux'][1]
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True
 
 
@@ -404,17 +405,17 @@ class CopypastaCommand(Command):
         incoming_message = args[1]
         query = Command.check_arg(incoming_message)
         if not query:
-            self.receiver_.sendmsg('I need a search term.',
-                                   self.receiver_.channel_)
+            self._receiver.sendmsg('I need a search term.',
+                                   self._receiver.channel)
             return False
 
         pasta = cps.get_copypasta(query)
-        pasta = pasta[:self.receiver_.max_message_length_ - 3]
+        pasta = pasta[:self._receiver.max_message_length - 3]
         pasta = pasta.replace('\n', ' ')
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()
         pasta += '...'
-        self.receiver_.sendmsg(pasta, self.receiver_.channel_)
+        self._receiver.sendmsg(pasta, self._receiver.channel)
         return True
 
 
@@ -424,5 +425,5 @@ class ShrugCommand(Command):
 
     def execute(self, args):
         msg = r"¯\_(ツ)_/¯"
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._receiver.sendmsg(msg, self._receiver.channel)
         return True

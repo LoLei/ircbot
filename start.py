@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
-from src.ircbotserver import main
+from src.ircbotserver import main as server_main
+
+
+def start_server():
+    server_main()
+
 
 if __name__ == "__main__":
-    main()
-
+    start_server()

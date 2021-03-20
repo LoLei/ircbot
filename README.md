@@ -18,7 +18,7 @@ Start it once on your server and use the commands within your IRC client.
 
 ### Server
 ```
-./ircbotserver.py
+./start.py
 ```
 Configure settings (nick, server, channel, command prefix, etc.) in `config.yaml`.
 
