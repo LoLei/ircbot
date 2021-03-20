@@ -262,7 +262,7 @@ class IRCBot():
             logging.info("Still ignoring messages")
             return True
         else:
-            if not self.ignoring_messages_:
+            if self.ignoring_messages_:
                 logging.info(
                     f"Stopped ignoring messages after {self.join_delay_} seconds")
             self.ignoring_messages_ = False
@@ -283,7 +283,7 @@ class IRCBot():
             try:
                 message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
             except IndexError as e:
-                logging.error(e)
+                logging.error(e)  # TODO: Use logging.exception or traceback module
                 return
 
             # Put user in data base or update existing user
