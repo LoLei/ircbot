@@ -1,6 +1,0 @@
-StormBot
-SubWatch
-aboftybot
-gonzobot
-rustAnnoys
-zinixbot

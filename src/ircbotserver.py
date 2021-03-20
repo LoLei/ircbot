@@ -2,7 +2,7 @@
 
 import platform
 
-from ircbot import IRCBot
+from src.ircbot import IRCBot
 
 
 def main():

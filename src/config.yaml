@@ -1,0 +1,13 @@
+server: irc.snoonet.org
+# channel: '#linuxmasterrace'
+channel: '##bot-testing'
+# channel: '#casualconversation'
+bot_nick: muh_bot
+password: frndsmdn
+admin_name: Asmodean
+exit_code: Be gone BOTNICK
+command_prefix: '\'
+user_db_message_log_size: 1000
+stopwords: [http, https, www]
+imgur_client_id: b0825933e46357f
+imgur_client_secret: 724393d790b56ea10564c2fc76c19fc3c808bc2b

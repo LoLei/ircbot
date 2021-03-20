@@ -17,8 +17,8 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, ImageColorGenerator
 
 # Own
-import imageuploader
-import util
+from src.imageuploader import upload
+from src.util import STOPWORDS
 
 
 class Command(ABC):
@@ -219,7 +219,7 @@ class FrequentWordsCommand(Command):
         name = user_q_res[0]['name']
 
         # Add bot commands to list of stop words
-        stopwords = util.STOPWORDS
+        stopwords = STOPWORDS
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name.lower()])
 
@@ -291,7 +291,7 @@ class WordCloudCommand(Command):
         user_text = ' '.join(msgs)
 
         # Add bot commands to list of stop words
-        stopwords = util.STOPWORDS
+        stopwords = STOPWORDS
         stopwords.update(self.receiver_.commands_.keys())
         stopwords.update([name, name.lower()])
 
@@ -323,7 +323,7 @@ class WordCloudCommand(Command):
         plt.savefig(file_and_path, format="png")
 
         # Upload wordcloud
-        res = imageuploader.upload(file_and_path)
+        res = upload(file_and_path)
 
         os.remove(file_and_path)
 

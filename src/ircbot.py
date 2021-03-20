@@ -17,21 +17,26 @@ from datetime import datetime
 from pathlib import Path
 from tinydb import TinyDB, Query
 # Own
-from command import HelpCommand, CommandCommand, AboutCommand,\
+from src.command import HelpCommand, CommandCommand, AboutCommand,\
     LmCommand, SentimentCommand, TimeCommand, DateCommand,\
     UptimeCommand, UpdogCommand, FrequentWordsCommand,\
     WordCloudCommand, WeekdayCommand, InterjectCommand,\
     CopypastaCommand, ShrugCommand
-from settings import CONFIG
+from src.settings import CONFIG
 
 # Misc settings
-termrows, termcolumns = os.popen('stty size', 'r').read().split()
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                     filename=datetime.now().strftime(
                         '%Y_%m_%d.log'), level=logging.DEBUG)
 HOME_DIR = str(Path.home())
 BOT_DIR = os.path.join(HOME_DIR, "git/ircbot")
 assert os.path.isdir(BOT_DIR)
+
+try:
+    _, TERM_COLUMNS = os.popen('stty size', 'r').read().split()
+except ValueError:
+    logging.warning("term columns could not be ascertained")
+    TERM_COLUMNS = 80
 
 
 class IRCBot():
@@ -166,7 +171,7 @@ class IRCBot():
         sepmsg = "ircmsg:"
         for ircmsg in ircmsgs:
             logging.info("%s %s", sepmsg, "-" *
-                         (int(termcolumns)-len(sepmsg)-30))
+                         (int(TERM_COLUMNS) - len(sepmsg) - 30))
             logging.info(ircmsg)
         self.ircsock_.setblocking(True)
         return ircmsgs

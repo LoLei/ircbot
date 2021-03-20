@@ -1,7 +1,7 @@
 from sklearn.feature_extraction import text
 from wordcloud import STOPWORDS as WCSTOPWORDS
 # Own
-import settings
+from src.settings import CONFIG
 
 
 def get_stopwords():
@@ -16,7 +16,7 @@ def get_stopwords():
 
     # custom stopwords
     # from config and/or bot commands
-    user_stopwords = settings.CONFIG['stopwords']
+    user_stopwords = CONFIG['stopwords']
     stopwords.update(user_stopwords)
 
     # Adapt for how wordcloud and sklearn CountVectorizer handle stop words

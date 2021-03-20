@@ -1,7 +1,7 @@
 from imgurpython import ImgurClient
-# Own
-from settings import CONFIG
 
+# Own
+from src.settings import CONFIG
 
 CLIENT = ImgurClient(
     CONFIG['imgur_client_id'],
