@@ -23,6 +23,7 @@ from src.command import HelpCommand, CommandCommand, AboutCommand, \
     UptimeCommand, UpdogCommand, FrequentWordsCommand, \
     WordCloudCommand, WeekdayCommand, InterjectCommand, \
     CopypastaCommand, ShrugCommand, Command
+from src.sender import Sender
 from src.settings import CONFIG
 
 # Misc settings
@@ -74,6 +75,9 @@ class IRCBot:
         self._join_time = 0.0
         self._join_delay = 10.0
         self._ignoring_messages = True
+
+        # Sender and receiver (TODO: Inject dependencies)
+        self._sender = Sender(self._irc_sock, self.repeated_message_sleep_time)
         self._creation_time: float = time.time()
 
     @property
@@ -166,24 +170,6 @@ class IRCBot:
         # PING code can be in a multiline message
         ping_code = msg[msg.rindex('PING') + len('PING :'):]
         self._irc_sock.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
-
-    def sendmsg(self, msg: str, target: str, notice: bool = False) -> bool:
-        # TODO: Create sender class so it can be passed to command
-        # Handle sending a message that is longer than the max IRC
-        # message length, i.e. split it up into multiple messages
-        msg_parts = [msg[i:i + self.max_message_length]
-                     for i in range(0, len(msg), self.max_message_length)]
-
-        # NOTICE for private messages without separate buffer
-        # PRIVMSG for message to buffer, either nick or channel
-        irc_cmd = "NOTICE " if notice else "PRIVMSG "
-        separator = " " if notice else " :"
-
-        for msg_part in msg_parts:
-            self._irc_sock.send(bytes(irc_cmd + target + separator
-                                      + msg_part + "\n", "UTF-8"))
-            time.sleep(self.repeated_message_sleep_time)
-        return True
 
     def startbatch(self, channel: str) -> str:
         batch_id = ''.join(random.choices(
@@ -317,7 +303,7 @@ class IRCBot:
     def receive_and_parse_irc_msg(self, ircmsg: str) -> None:
         if not ircmsg:
             logging.info("empty ircmsg possibly due to timeout/no connection")
-            # self.connect(reconnect=True)
+            # self.connect(reconnect=True)  # TODO: Re-enable
             time.sleep(self._socket_timeout / 10)
             return
 
@@ -338,7 +324,8 @@ class IRCBot:
 
             if (name.lower() == self.admin_name.lower() and
                     message.rstrip() == self._exitcode):
-                self.sendmsg("cya", self.channel)
+                self._sender.send_msg("cya", self.channel,
+                                      self.max_message_length)
                 self._irc_sock.send(bytes("QUIT \n", "UTF-8"))
                 return
 
@@ -346,9 +333,9 @@ class IRCBot:
             if len(name) < self._max_user_name_length:
                 if name in self._bot_bros:
                     if random.random() < 0.01:
-                        self.sendmsg(
+                        self._sender.send_msg(
                             "{} is my bot-bro.".format(name),
-                            self.channel)
+                            self.channel, self.max_message_length)
                         return
 
                 if self.respond_to_trigger(name, message):
@@ -358,7 +345,8 @@ class IRCBot:
                     if random.random() < 0.25:
                         choice = random.choice(self._responses)
                         choice = choice.replace("USER", name, 1)
-                        self.sendmsg(choice, self.channel)
+                        self._sender.send_msg(choice, self.channel,
+                                              self.max_message_length)
 
                 elif message[:1] == self.command_prefix:
                     # No command after command prefix
@@ -413,7 +401,8 @@ class IRCBot:
                     response = response.replace('BOTNAME', self._nick)
                     response = response.replace('ADMIN', self.admin_name)
                     response = response.replace('USER', name)
-                    self.sendmsg(response, self.channel)
+                    self._sender.send_msg(response, self.channel,
+                                          self.max_message_length)
                     return True
         return False
 

@@ -2,6 +2,7 @@
 *.json
 *.png
 !wctux.png
+!tux.png
 !triggers.json
 !requirements.txt
 .python-version
