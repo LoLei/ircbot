@@ -306,7 +306,7 @@ class IRCBot:
     def receive_and_parse_irc_msg(self, ircmsg: str) -> None:
         if not ircmsg:
             logging.info("empty ircmsg possibly due to timeout/no connection")
-            # self.connect(reconnect=True)  # TODO: Re-enable
+            self.connect(reconnect=True)
             time.sleep(self._socket_timeout / 10)
             return
 
