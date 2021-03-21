@@ -59,11 +59,9 @@ class IRCBot:
         # Default memvars
         self._max_user_name_length = 17  # Freenode, need to check snoonet
         self._max_message_length = 0  # Set later
-        self._commands: Dict[str, Command] = self.create_commands()
         self._responses: List[str] = []
         self._bot_bros: List[str] = []
         self._triggers: Dict[str, List] = {}
-        self._max_command_length = self.get_max_command_length()
         self._min_msg_interval = 1.01
         self._last_command_time = 0.0
         self._last_ping_time: float = time.time()
@@ -76,8 +74,13 @@ class IRCBot:
         self._join_delay = 10.0
         self._ignoring_messages = True
 
-        # Sender and receiver (TODO: Inject dependencies)
+        # IRC message sender (and receiver) (TODO: Inject dependencies)
         self._sender = Sender(self._irc_sock, self.repeated_message_sleep_time)
+
+        # Commands (must be after sender, because commands need the sender)
+        self._commands: Dict[str, Command] = self.create_commands(self._sender)
+        self._max_command_length = self.get_max_command_length()
+
         self._creation_time: float = time.time()
 
     @property
@@ -124,23 +127,23 @@ class IRCBot:
     def max_message_length(self) -> int:
         return self._max_message_length
 
-    def create_commands(self) -> Dict[str, Command]:
+    def create_commands(self, sender: Sender) -> Dict[str, Command]:
         return {
-            'about': AboutCommand(self),
-            'cmds': CommandCommand(self),
-            'copypasta': CopypastaCommand(self),
-            'date': DateCommand(self),
-            'help': HelpCommand(self),
-            'interject': InterjectCommand(self),
-            'lastmessage': LmCommand(self),
-            'sentiment': SentimentCommand(self),
-            'shrug': ShrugCommand(self),
-            'time': TimeCommand(self),
-            'updog': UpdogCommand(self),
-            'uptime': UptimeCommand(self),
-            'weekday': WeekdayCommand(self),
-            'wordcloud': WordCloudCommand(self),
-            'words': FrequentWordsCommand(self),
+            'about': AboutCommand(self, sender),
+            'cmds': CommandCommand(self, sender),
+            'copypasta': CopypastaCommand(self, sender),
+            'date': DateCommand(self, sender),
+            'help': HelpCommand(self, sender),
+            'interject': InterjectCommand(self, sender),
+            'lastmessage': LmCommand(self, sender),
+            'sentiment': SentimentCommand(self, sender),
+            'shrug': ShrugCommand(self, sender),
+            'time': TimeCommand(self, sender),
+            'updog': UpdogCommand(self, sender),
+            'uptime': UptimeCommand(self, sender),
+            'weekday': WeekdayCommand(self, sender),
+            'wordcloud': WordCloudCommand(self, sender),
+            'words': FrequentWordsCommand(self, sender),
         }
 
     def connect(self, reconnect: bool = False) -> bool:
