@@ -1,6 +1,7 @@
+from typing import Dict
+
 from imgurpython import ImgurClient
 
-# Own
 from src.settings import CONFIG
 
 CLIENT = ImgurClient(
@@ -9,5 +10,5 @@ CLIENT = ImgurClient(
     )
 
 
-def upload(path):
+def upload(path: str) -> Dict:
     return CLIENT.upload_from_path(path, config=None, anon=True)

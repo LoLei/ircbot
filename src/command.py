@@ -4,7 +4,7 @@ import os
 import re
 import time
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import copypasta_search as cps
 import matplotlib.pyplot as plt
@@ -22,25 +22,25 @@ from src.util import STOPWORDS
 
 class Command(ABC):
     # Receiver = Invoker
-    def __init__(self, receiver):
+    def __init__(self, receiver) -> None:
         self._receiver = receiver
 
     @property
     @abstractmethod
-    def helptext(self):
+    def helptext(self) -> str:
         pass
 
     @abstractmethod
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         pass
 
     @staticmethod
-    def check_arg(incoming_message):
-        query = incoming_message.split(' ', 1)
+    def check_arg(incoming_message: str) -> Union[str, bool]:
         try:
-            query = query[1].strip()
+            query = incoming_message.split(' ', 1)[1].strip()
         except IndexError:
             return False
+
         if query in ['', '*', '\\']:
             return False
         return query
@@ -48,9 +48,11 @@ class Command(ABC):
 
 class HelpCommand(Command):
 
-    helptext = "show basic help text"
+    @property
+    def helptext(self) -> str:
+        return "show basic help text"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = "Use {0}cmds for all commands, and {0}about for more info.".\
             format(self._receiver.command_prefix)
         self._receiver.sendmsg(msg, args[0], notice=True)
@@ -59,9 +61,11 @@ class HelpCommand(Command):
 
 class CommandCommand(Command):
 
-    helptext = "[multiline] list available commands and usages"
+    @property
+    def helptext(self) -> str:
+        return "[multiline] list available commands and usages"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         multiline = False
 
@@ -90,9 +94,11 @@ class CommandCommand(Command):
 
 class AboutCommand(Command):
 
-    helptext = "show information about me"
+    @property
+    def helptext(self) -> str:
+        return "show information about me"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = "I am a smol IRC bot made by " + \
               self._receiver.admin_name +\
             ". Mention me by name or use " + \
@@ -106,9 +112,11 @@ class AboutCommand(Command):
 
 class LmCommand(Command):
 
-    helptext = "<user> show information about last message of a user"
+    @property
+    def helptext(self) -> str:
+        return "<user> show information about last message of a user"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
@@ -135,9 +143,11 @@ class LmCommand(Command):
 
 class SentimentCommand(Command):
 
-    helptext = "<text>/<user> analyze sentiment"
+    @property
+    def helptext(self) -> str:
+        return "<text>/<user> analyze sentiment"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
@@ -195,9 +205,11 @@ class SentimentCommand(Command):
 
 class FrequentWordsCommand(Command):
 
-    helptext = "<user> show a user's most used words"
+    @property
+    def helptext(self) -> str:
+        return "<user> show a user's most used words"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         trigger_nick = args[0]
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
@@ -256,9 +268,11 @@ class FrequentWordsCommand(Command):
 
 class WordCloudCommand(Command):
 
-    helptext = "<user> [title] generate a word cloud for a user"
+    @property
+    def helptext(self) -> str:
+        return "<user> [title] generate a word cloud for a user"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         trigger_nick = args[0]
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
@@ -336,18 +350,22 @@ class WordCloudCommand(Command):
 
 class TimeCommand(Command):
 
-    helptext = "show the time"
+    @property
+    def helptext(self) -> str:
+        return "show the time"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         self._receiver.sendmsg(str(time.time()), self._receiver.channel)
         return True
 
 
 class DateCommand(Command):
 
-    helptext = "show the date"
+    @property
+    def helptext(self) -> str:
+        return "show the date"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
         self._receiver.sendmsg(date_str, self._receiver.channel)
@@ -356,9 +374,11 @@ class DateCommand(Command):
 
 class WeekdayCommand(Command):
 
-    helptext = "show the weekday"
+    @property
+    def helptext(self) -> str:
+        return "show the weekday"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         datetime.datetime.today().weekday()
         msg = calendar.day_name[datetime.datetime.today().weekday()]
         self._receiver.sendmsg(msg, self._receiver.channel)
@@ -367,9 +387,11 @@ class WeekdayCommand(Command):
 
 class UptimeCommand(Command):
 
-    helptext = "show my age"
+    @property
+    def helptext(self) -> str:
+        return "show my age"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         time_now = time.time()
         diff_sec = time_now - self._receiver.creation_time
         diff_time = datetime.timedelta(seconds=int(diff_sec))
@@ -379,9 +401,11 @@ class UptimeCommand(Command):
 
 class UpdogCommand(Command):
 
-    helptext = "is it me or does it smell like updog in here"
+    @property
+    def helptext(self) -> str:
+        return "is it me or does it smell like updog in here"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = "Nothing much, what's up with you?"
         self._receiver.sendmsg(msg, self._receiver.channel)
         return True
@@ -389,9 +413,11 @@ class UpdogCommand(Command):
 
 class InterjectCommand(Command):
 
-    helptext = "set people right about GNU/Linux"
+    @property
+    def helptext(self) -> str:
+        return "set people right about GNU/Linux"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = self._receiver.triggers[' linux'][1]
         self._receiver.sendmsg(msg, self._receiver.channel)
         return True
@@ -399,9 +425,11 @@ class InterjectCommand(Command):
 
 class CopypastaCommand(Command):
 
-    helptext = "<query> get copypasta based on query"
+    @property
+    def helptext(self) -> str:
+        return "<query> get copypasta based on query"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         query = Command.check_arg(incoming_message)
         if not query:
@@ -421,9 +449,11 @@ class CopypastaCommand(Command):
 
 class ShrugCommand(Command):
 
-    helptext = "make the bot shrug"
+    @property
+    def helptext(self) -> str:
+        return "make the bot shrug"
 
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = r"¯\_(ツ)_/¯"
         self._receiver.sendmsg(msg, self._receiver.channel)
         return True

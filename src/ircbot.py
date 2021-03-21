@@ -14,7 +14,7 @@ import string
 import threading
 import time
 from datetime import datetime
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Union
 
 from tinydb import TinyDB, Query
 
@@ -39,21 +39,21 @@ except IndexError:
 
 
 class IRCBot:
-    def __init__(self):
+    def __init__(self) -> None:
         # Socket
-        self.ircsock_: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket_timeout_ = 60*3  # 2 min pings on snoonet
+        self._irc_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket_timeout = 60 * 3  # 2 min pings on snoonet
 
         # User defined options
-        self._server = CONFIG['server']
-        self._channel = CONFIG['channel']
-        self._nick = CONFIG['bot_nick']
-        self._password = CONFIG['password']
-        self._admin_name = CONFIG['admin_name']
-        self._exitcode = CONFIG['exit_code'].replace('BOTNICK', self._nick, 1)
-        self._command_prefix = CONFIG['command_prefix']
-        self._user_db_message_log_size = CONFIG['user_db_message_log_size']
-        self._user_db = TinyDB('users.json')
+        self._server: str = CONFIG['server']
+        self._channel: str = CONFIG['channel']
+        self._nick: str = CONFIG['bot_nick']
+        self._password: str = CONFIG['password']
+        self._admin_name: str = CONFIG['admin_name']
+        self._exitcode: str = CONFIG['exit_code'].replace('BOTNICK', self._nick, 1)
+        self._command_prefix: str = CONFIG['command_prefix']
+        self._user_db_message_log_size: int = CONFIG['user_db_message_log_size']
+        self._user_db: TinyDB = TinyDB('users.json')
 
         # Default memvars
         self._max_user_name_length = 17  # Freenode, need to check snoonet
@@ -65,51 +65,51 @@ class IRCBot:
         self._max_command_length = self.get_max_command_length()
         self._min_msg_interval = 1.01
         self._last_command_time = 0.0
-        self._last_ping_time = time.time()
+        self._last_ping_time: float = time.time()
         self._re_files_txt_interval = 60.0 * 15
         self._repeated_message_sleep_time = 1.25
         self._user_meta = ""  # Set later
         self._replace_strings = ['ADMIN', 'USER', 'BOTNAME', 'COMMANDPREFIX']
-        self._version = __version__
+        self._version: str = __version__
         self._join_time = 0.0
         self._join_delay = 10.0
         self._ignoring_messages = True
-        self._creation_time = time.time()
+        self._creation_time: float = time.time()
 
     @property
-    def command_prefix(self):
+    def command_prefix(self) -> str:
         return self._command_prefix
 
     @property
-    def commands(self):
+    def commands(self) -> Dict[str, Command]:
         return self._commands
 
     @property
-    def repeated_message_sleep_time(self):
+    def repeated_message_sleep_time(self) -> float:
         return self._repeated_message_sleep_time
 
     @property
-    def admin_name(self):
+    def admin_name(self) -> str:
         return self._admin_name
 
     @property
-    def version(self):
+    def version(self) -> str:
         return self._version
 
     @property
-    def channel(self):
+    def channel(self) -> str:
         return self._channel
 
     @property
-    def user_db(self):
+    def user_db(self) -> TinyDB:
         return self._user_db
 
     @property
-    def user_db_message_log_size(self):
+    def user_db_message_log_size(self) -> int:
         return self._user_db_message_log_size
 
     @property
-    def creation_time(self):
+    def creation_time(self) -> float:
         return self._creation_time
 
     @property
@@ -117,7 +117,7 @@ class IRCBot:
         return self._triggers
 
     @property
-    def max_message_length(self):
+    def max_message_length(self) -> int:
         return self._max_message_length
 
     def create_commands(self) -> Dict[str, Command]:
@@ -139,35 +139,35 @@ class IRCBot:
             'words': FrequentWordsCommand(self),
         }
 
-    def connect(self, reconnect=False):
+    def connect(self, reconnect: bool = False) -> bool:
         if reconnect:
             # self.ircsock_.close()
-            self.ircsock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.ircsock_.connect((self._server, 6667))
+            self._irc_sock.connect((self._server, 6667))
         except socket.gaierror as e:
             logging.error(e)
             return False
 
         logging.info("socket connection established")
-        self.ircsock_.send(bytes("PASS " + self._password + "\n", "UTF-8"))
-        self.ircsock_.send(bytes("USER " + self._nick + " " + self._nick +
+        self._irc_sock.send(bytes("PASS " + self._password + "\n", "UTF-8"))
+        self._irc_sock.send(bytes("USER " + self._nick + " " + self._nick +
                                  " " + self._nick + ":snoobotasmo .\n",
                                  "UTF-8"))
-        self.ircsock_.send(bytes("NICK " + self._nick + "\n", "UTF-8"))
+        self._irc_sock.send(bytes("NICK " + self._nick + "\n", "UTF-8"))
         logging.info("initial IRC connection successful")
         return True
 
-    def join(self, chan):
-        self.ircsock_.send(bytes("JOIN " + chan + "\n", "UTF-8"))
+    def join(self, chan: str) -> None:
+        self._irc_sock.send(bytes("JOIN " + chan + "\n", "UTF-8"))
         self._join_time = time.time()
 
-    def ping(self, msg):
+    def ping(self, msg: str) -> None:
         # PING code can be in a multiline message
         ping_code = msg[msg.rindex('PING') + len('PING :'):]
-        self.ircsock_.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
+        self._irc_sock.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
 
-    def sendmsg(self, msg, target, notice=False):
+    def sendmsg(self, msg: str, target: str, notice: bool = False) -> bool:
         # TODO: Create sender class so it can be passed to command
         # Handle sending a message that is longer than the max IRC
         # message length, i.e. split it up into multiple messages
@@ -180,32 +180,32 @@ class IRCBot:
         separator = " " if notice else " :"
 
         for msg_part in msg_parts:
-            self.ircsock_.send(bytes(irc_cmd + target + separator
-                                     + msg_part + "\n", "UTF-8"))
+            self._irc_sock.send(bytes(irc_cmd + target + separator
+                                      + msg_part + "\n", "UTF-8"))
             time.sleep(self.repeated_message_sleep_time)
         return True
 
-    def startbatch(self, channel):
+    def startbatch(self, channel: str) -> str:
         batch_id = ''.join(random.choices(
             string.ascii_uppercase + string.digits, k=14))
         # Multiline not in prod yet:
         # https://github.com/ircv3/ircv3-specifications/pull/398
         batch_type = 'draft/multiline'
-        self.ircsock_.send(bytes("BATCH +" + batch_id + " " + batch_type +
+        self._irc_sock.send(bytes("BATCH +" + batch_id + " " + batch_type +
                                  " " + channel + "\n", "UTF-8"))
         return batch_id
 
-    def endbatch(self, batch_id):
-        self.ircsock_.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
+    def endbatch(self, batch_id: str) -> None:
+        self._irc_sock.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
 
-    def receivemsg(self):
+    def receivemsg(self) -> Union[str, List[str]]:
         # Timeout when connection is lost
-        self.ircsock_.setblocking(False)
-        ready = select.select([self.ircsock_], [], [], self.socket_timeout_)
+        self._irc_sock.setblocking(False)
+        ready = select.select([self._irc_sock], [], [], self._socket_timeout)
         ircmsg = ""
         if ready[0]:
             try:
-                ircmsg = self.ircsock_.recv(2048).decode("UTF-8")
+                ircmsg = self._irc_sock.recv(2048).decode("UTF-8")
             except (OSError, UnicodeDecodeError) as e:
                 logging.error(e)
                 return "ERROR"
@@ -218,17 +218,17 @@ class IRCBot:
             logging.info("%s %s", sepmsg, "-" *
                          (TERM_COLUMNS - len(sepmsg) - 30))
             logging.info(ircmsg)
-        self.ircsock_.setblocking(True)
+        self._irc_sock.setblocking(True)
         return ircmsgs
 
-    def get_max_command_length(self):
+    def get_max_command_length(self) -> int:
         max_length = 0
         for command_name in self.commands:
             if len(command_name) > max_length:
                 max_length = len(command_name)
         return max_length
 
-    def get_max_message_length(self):
+    def get_max_message_length(self) -> int:
         irc_max_msg_len = 512
         return irc_max_msg_len - (
                 len(self._user_meta) +
@@ -269,7 +269,7 @@ class IRCBot:
     def read_db_txt_files(self) -> Tuple[List[str], List[str], Dict[str, List]]:
         return self.get_responses(), self.get_bot_bros(), self.get_triggers()
 
-    def run(self):
+    def run(self) -> None:
         self.connect()
 
         # Thread to re-read the database files
@@ -282,7 +282,7 @@ class IRCBot:
             target=self.receive_and_parse_msg_loop)
         t_recv_parse_msg.start()
 
-    def re_read_txt_database_loop(self):
+    def re_read_txt_database_loop(self) -> None:
         while True:
             read_ins = self.read_db_txt_files()
             self._responses = read_ins[0]
@@ -290,17 +290,17 @@ class IRCBot:
             self._triggers = read_ins[2]
             time.sleep(self._re_files_txt_interval)
 
-    def receive_and_parse_msg_loop(self):
+    def receive_and_parse_msg_loop(self) -> None:
         t = threading.currentThread()
         while getattr(t, "do_run", True):
             self.receive_and_parse_msg()
 
-    def receive_and_parse_msg(self):
+    def receive_and_parse_msg(self) -> None:
         ircmsgs = self.receivemsg()
         for ircmsg in ircmsgs:
             self.receive_and_parse_irc_msg(ircmsg)
 
-    def check_if_ignore_messages(self):
+    def check_if_ignore_messages(self) -> bool:
         # Ignore messages the first n seconds after joining
         # Prevents duplicate parsing of backfeed messages
         if (time.time() - self._join_time) < self._join_delay:
@@ -314,11 +314,11 @@ class IRCBot:
             self._ignoring_messages = False
             return False
 
-    def receive_and_parse_irc_msg(self, ircmsg):
+    def receive_and_parse_irc_msg(self, ircmsg: str) -> None:
         if not ircmsg:
             logging.info("empty ircmsg possibly due to timeout/no connection")
-            self.connect(reconnect=True)
-            time.sleep(self.socket_timeout_ / 10)
+            # self.connect(reconnect=True)
+            time.sleep(self._socket_timeout / 10)
             return
 
         if ircmsg.find("PRIVMSG") != -1:
@@ -339,7 +339,7 @@ class IRCBot:
             if (name.lower() == self.admin_name.lower() and
                     message.rstrip() == self._exitcode):
                 self.sendmsg("cya", self.channel)
-                self.ircsock_.send(bytes("QUIT \n", "UTF-8"))
+                self._irc_sock.send(bytes("QUIT \n", "UTF-8"))
                 return
 
             # Normal user messages/commands
@@ -394,7 +394,7 @@ class IRCBot:
         if ircmsg.find(":You are now logged in as " + self._nick) != -1:
             self.join(self.channel)
 
-    def respond_to_trigger(self, name, message):
+    def respond_to_trigger(self, name: str, message: str) -> bool:
         trigger_keys = list(self.triggers.keys())
         for trigger_key in trigger_keys:
 
@@ -417,11 +417,11 @@ class IRCBot:
                     return True
         return False
 
-    def handle_user_on_message(self, name, message):
+    def handle_user_on_message(self, name: str, message: str) -> None:
         user_q = Query()
         user_q_res = self.user_db.get(user_q.name == name)
         if not user_q_res:
-            msgs = collections.deque(maxlen=self.user_db_message_log_size)
+            msgs: collections.deque = collections.deque(maxlen=self.user_db_message_log_size)
             msgs.append(message)
             self.user_db.insert({'name': name,
                                  'lastseen': time.time(),
@@ -436,7 +436,7 @@ class IRCBot:
                                  'messages': list(msgs)
                                  }, user_q.name == name)
 
-    def execute_command(self, name, message):
+    def execute_command(self, name: str, message: str) -> None:
         command_name = message[1:self._max_command_length + 1]
         if not ''.join(command_name.split()):
             return

@@ -1,12 +1,14 @@
+from typing import Set
+
 from sklearn.feature_extraction import text
 from wordcloud import STOPWORDS as WCSTOPWORDS
-# Own
+
 from src.settings import CONFIG
 
 
-def get_stopwords():
+def get_stopwords() -> Set[str]:
 
-    stopwords = set()
+    stopwords: Set[str] = set()
 
     # stop words from sklearn
     stopwords = stopwords.union(text.ENGLISH_STOP_WORDS)
