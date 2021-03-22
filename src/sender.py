@@ -1,17 +1,22 @@
 import socket
 
-#
-# def sendmsg(self, irc_socket: socket.socket, msg: str, target: str,
-#             max_message_length: int, repeated_message_sleep_time: int,
-#             notice: bool = False) -> bool:
 import time
 
 
+# TODO: Put other send method that use the irc socket (e.g. JOIN, PING) here
 class Sender:
     def __init__(self, irc_socket: socket.socket,
                  repeated_message_sleep_time: float) -> None:
         self._irc_socket = irc_socket
         self._repeated_message_sleep_time = repeated_message_sleep_time
+
+    @property
+    def irc_socket(self) -> socket.socket:
+        return self._irc_socket
+
+    @irc_socket.setter
+    def irc_socket(self, new_socket: socket.socket):
+        self._irc_socket = new_socket
 
     def send_msg(self, msg: str, target: str, max_message_length,
                  notice: bool = False) -> bool:

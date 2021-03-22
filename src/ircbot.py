@@ -150,6 +150,7 @@ class IRCBot:
         if reconnect:
             # self.ircsock_.close()
             self._irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._sender.irc_socket = self._irc_sock
         try:
             self._irc_sock.connect((self._server, 6667))
         except socket.gaierror as e:
@@ -159,8 +160,8 @@ class IRCBot:
         logging.info("socket connection established")
         self._irc_sock.send(bytes("PASS " + self._password + "\n", "UTF-8"))
         self._irc_sock.send(bytes("USER " + self._nick + " " + self._nick +
-                                 " " + self._nick + ":snoobotasmo .\n",
-                                 "UTF-8"))
+                                  " " + self._nick + ":snoobotasmo .\n",
+                                  "UTF-8"))
         self._irc_sock.send(bytes("NICK " + self._nick + "\n", "UTF-8"))
         logging.info("initial IRC connection successful")
         return True
