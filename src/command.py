@@ -59,9 +59,9 @@ class HelpCommand(Command):
     def execute(self, args: List[str]) -> bool:
         msg = "Use {0}cmds for all commands, and {0}about for more info.". \
             format(self._receiver.command_prefix)
-        self._sender.send_msg(msg, args[0],
-                              self._receiver.max_message_length,
-                              notice=True)
+        self._sender.send_privmsg(msg, args[0],
+                                  self._receiver.max_message_length,
+                                  notice=True)
         return True
 
 
@@ -84,9 +84,9 @@ class CommandCommand(Command):
             for name in self._receiver.commands:
                 msg = self._receiver.command_prefix + name + \
                       " - " + self._receiver.commands[name].help_text
-                self._sender.send_msg(msg, args[0],
-                                      self._receiver.max_message_length,
-                                      notice=True)
+                self._sender.send_privmsg(msg, args[0],
+                                          self._receiver.max_message_length,
+                                          notice=True)
                 time.sleep(self._receiver.repeated_message_sleep_time / 10)
         else:
             command_names = ""
@@ -95,9 +95,9 @@ class CommandCommand(Command):
                                   + name + " - "
                                   + self._receiver.commands[name].help_text
                                   + ' | ')
-            self._sender.send_msg(command_names[:-3], args[0],
-                                  self._receiver.max_message_length,
-                                  notice=True)
+            self._sender.send_privmsg(command_names[:-3], args[0],
+                                      self._receiver.max_message_length,
+                                      notice=True)
 
         return True
 
@@ -116,8 +116,8 @@ class AboutCommand(Command):
               " for commands. " + \
               "Version " + self._receiver.version + \
               ". Source: https://git.io/JfJ9B"
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -131,8 +131,8 @@ class LmCommand(Command):
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self._sender.send_msg('I need a name.', self._receiver.channel,
-                                  self._receiver.max_message_length)
+            self._sender.send_privmsg('I need a name.', self._receiver.channel,
+                                      self._receiver.max_message_length)
             return False
 
         user_q = Query()
@@ -144,10 +144,10 @@ class LmCommand(Command):
             ls = user_q_res[0]['lastseen']
             msg = ("{0}\'s last message: \"{1}\" at {2}. "
                    ).format(user_q_res[0]['name'], lm, ls)
-            self._sender.send_msg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+            self._sender.send_privmsg(msg, self._receiver.channel,
+                                      self._receiver.max_message_length)
         else:
-            self._sender.send_msg(
+            self._sender.send_privmsg(
                 "I haven't encountered this user yet.",
                 self._receiver.channel,
                 self._receiver.max_message_length)
@@ -165,9 +165,9 @@ class SentimentCommand(Command):
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self._sender.send_msg('I need a name or some text.',
-                                  self._receiver.channel,
-                                  self._receiver.max_message_length)
+            self._sender.send_privmsg('I need a name or some text.',
+                                      self._receiver.channel,
+                                      self._receiver.max_message_length)
             return False
 
         # Use last message of user if argument is user name,
@@ -214,8 +214,8 @@ class SentimentCommand(Command):
 
         msg = msg_natural + " " + msg_textblob + " " + msg_vader
 
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -237,7 +237,7 @@ class FrequentWordsCommand(Command):
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self._sender.send_msg(
+            self._sender.send_privmsg(
                 "I haven't encountered this user yet.",
                 self._receiver.channel, self._receiver.max_message_length)
             return True
@@ -265,7 +265,7 @@ class FrequentWordsCommand(Command):
         msg = "({}) Top words (of last {} messages) for {}: {}".format(
             trigger_nick, self._receiver.user_db_message_log_size,
             name, self.format_count_list(top_n))
-        self._sender.send_msg(msg, self._receiver.channel, self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel, self._receiver.max_message_length)
         return True
 
     @staticmethod
@@ -307,7 +307,7 @@ class WordCloudCommand(Command):
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self._sender.send_msg(
+            self._sender.send_privmsg(
                 "I haven't encountered this user yet.",
                 self._receiver.channel, self._receiver.max_message_length)
             return True
@@ -315,8 +315,8 @@ class WordCloudCommand(Command):
 
         msg = "({}) Cloud generation for nick {} started...".format(
             trigger_nick, name)
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
 
         # Get all user messages as a string
         msgs = list(user_q_res[0]['messages'])
@@ -363,8 +363,8 @@ class WordCloudCommand(Command):
 
         msg = "Cloud generated for " + name + ": "
         msg += res['link']
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -375,8 +375,8 @@ class TimeCommand(Command):
         return "show the time"
 
     def execute(self, args: List[str]) -> bool:
-        self._sender.send_msg(str(time.time()), self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(str(time.time()), self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -389,8 +389,8 @@ class DateCommand(Command):
     def execute(self, args: List[str]) -> bool:
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
-        self._sender.send_msg(date_str, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(date_str, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -403,8 +403,8 @@ class WeekdayCommand(Command):
     def execute(self, args: List[str]) -> bool:
         datetime.datetime.today().weekday()
         msg = calendar.day_name[datetime.datetime.today().weekday()]
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -418,8 +418,8 @@ class UptimeCommand(Command):
         time_now = time.time()
         diff_sec = time_now - self._receiver.creation_time
         diff_time = datetime.timedelta(seconds=int(diff_sec))
-        self._sender.send_msg(str(diff_time), self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(str(diff_time), self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -431,8 +431,8 @@ class UpdogCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         msg = "Nothing much, what's up with you?"
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -444,8 +444,8 @@ class InterjectCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         msg = self._receiver.triggers[' linux'][1]
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -459,9 +459,9 @@ class CopypastaCommand(Command):
         incoming_message = args[1]
         query = Command.check_arg(incoming_message)
         if not query:
-            self._sender.send_msg('I need a search term.',
-                                  self._receiver.channel,
-                                  self._receiver.max_message_length)
+            self._sender.send_privmsg('I need a search term.',
+                                      self._receiver.channel,
+                                      self._receiver.max_message_length)
             return False
 
         pasta = cps.get_copypasta(query)
@@ -470,8 +470,8 @@ class CopypastaCommand(Command):
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()
         pasta += '...'
-        self._sender.send_msg(pasta, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(pasta, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
@@ -483,6 +483,6 @@ class ShrugCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         msg = r"¯\_(ツ)_/¯"
-        self._sender.send_msg(msg, self._receiver.channel,
-                              self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True

@@ -158,22 +158,18 @@ class IRCBot:
             return False
 
         logging.info("socket connection established")
-        self._irc_sock.send(bytes("PASS " + self._password + "\n", "UTF-8"))
-        self._irc_sock.send(bytes("USER " + self._nick + " " + self._nick +
-                                  " " + self._nick + ":snoobotasmo .\n",
-                                  "UTF-8"))
-        self._irc_sock.send(bytes("NICK " + self._nick + "\n", "UTF-8"))
+        self._sender.send_auth(self._nick, self._password)
         logging.info("initial IRC connection successful")
         return True
 
     def join(self, chan: str) -> None:
-        self._irc_sock.send(bytes("JOIN " + chan + "\n", "UTF-8"))
+        self._sender.send_join(chan)
         self._join_time = time.time()
 
     def ping(self, msg: str) -> None:
         # PING code can be in a multiline message
         ping_code = msg[msg.rindex('PING') + len('PING :'):]
-        self._irc_sock.send(bytes('PONG :' + ping_code + '\r\n', "UTF-8"))
+        self._sender.send_pong(ping_code)
 
     def startbatch(self, channel: str) -> str:
         batch_id = ''.join(random.choices(
@@ -181,12 +177,11 @@ class IRCBot:
         # Multiline not in prod yet:
         # https://github.com/ircv3/ircv3-specifications/pull/398
         batch_type = 'draft/multiline'
-        self._irc_sock.send(bytes("BATCH +" + batch_id + " " + batch_type +
-                                 " " + channel + "\n", "UTF-8"))
+        self._sender.send_start_batch(channel, batch_id, batch_type)
         return batch_id
 
     def endbatch(self, batch_id: str) -> None:
-        self._irc_sock.send(bytes("BATCH -" + batch_id + "\n", "UTF-8"))
+        self._sender.send_end_batch(batch_id)
 
     def receivemsg(self) -> Union[str, List[str]]:
         # Timeout when connection is lost
@@ -328,16 +323,16 @@ class IRCBot:
 
             if (name.lower() == self.admin_name.lower() and
                     message.rstrip() == self._exitcode):
-                self._sender.send_msg("cya", self.channel,
-                                      self.max_message_length)
-                self._irc_sock.send(bytes("QUIT \n", "UTF-8"))
+                self._sender.send_privmsg("cya", self.channel,
+                                          self.max_message_length)
+                self._sender.send_quit()
                 return
 
             # Normal user messages/commands
             if len(name) < self._max_user_name_length:
                 if name in self._bot_bros:
                     if random.random() < 0.01:
-                        self._sender.send_msg(
+                        self._sender.send_privmsg(
                             "{} is my bot-bro.".format(name),
                             self.channel, self.max_message_length)
                         return
@@ -349,8 +344,8 @@ class IRCBot:
                     if random.random() < 0.25:
                         choice = random.choice(self._responses)
                         choice = choice.replace("USER", name, 1)
-                        self._sender.send_msg(choice, self.channel,
-                                              self.max_message_length)
+                        self._sender.send_privmsg(choice, self.channel,
+                                                  self.max_message_length)
 
                 elif message[:1] == self.command_prefix:
                     # No command after command prefix
@@ -405,8 +400,8 @@ class IRCBot:
                     response = response.replace('BOTNAME', self._nick)
                     response = response.replace('ADMIN', self.admin_name)
                     response = response.replace('USER', name)
-                    self._sender.send_msg(response, self.channel,
-                                          self.max_message_length)
+                    self._sender.send_privmsg(response, self.channel,
+                                              self.max_message_length)
                     return True
         return False
 
