@@ -2,13 +2,11 @@ __author__ = "Lorenz Leitner"
 __version__ = "0.1337"
 __license__ = "MIT"
 
-
 import collections
 import json
 import logging
 import os
 import random
-import select
 import socket
 import string
 import threading
@@ -23,6 +21,7 @@ from src.command import HelpCommand, CommandCommand, AboutCommand, \
     UptimeCommand, UpdogCommand, FrequentWordsCommand, \
     WordCloudCommand, WeekdayCommand, InterjectCommand, \
     CopypastaCommand, ShrugCommand, Command
+from src.receiver import Receiver
 from src.sender import Sender
 from src.settings import CONFIG
 
@@ -31,12 +30,6 @@ logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                     filename=datetime.now().strftime(
                         '%Y_%m_%d.log'), level=logging.DEBUG)
 BOT_PATH = os.path.dirname(os.path.abspath(__file__))
-
-try:
-    TERM_COLUMNS = int(os.popen('stty size', 'r').read().split()[1])
-except IndexError:
-    logging.warning("term columns could not be ascertained")
-    TERM_COLUMNS = 80
 
 
 class IRCBot:
@@ -76,6 +69,7 @@ class IRCBot:
 
         # IRC message sender (and receiver) (TODO: Inject dependencies)
         self._sender = Sender(self._irc_sock, self.repeated_message_sleep_time)
+        self._receiver = Receiver(self._irc_sock, self._socket_timeout)
 
         # Commands (must be after sender, because commands need the sender)
         self._commands: Dict[str, Command] = self.create_commands(self._sender)
@@ -146,11 +140,14 @@ class IRCBot:
             'words': FrequentWordsCommand(self, sender),
         }
 
+    def _reset_socket(self) -> None:
+        self._irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sender.irc_socket = self._irc_sock
+        self._receiver.irc_socket = self._irc_sock
+
     def connect(self, reconnect: bool = False) -> bool:
         if reconnect:
-            # self.ircsock_.close()
-            self._irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._sender.irc_socket = self._irc_sock
+            self._reset_socket()
         try:
             self._irc_sock.connect((self._server, 6667))
         except socket.gaierror as e:
@@ -183,28 +180,8 @@ class IRCBot:
     def endbatch(self, batch_id: str) -> None:
         self._sender.send_end_batch(batch_id)
 
-    def receivemsg(self) -> Union[str, List[str]]:
-        # Timeout when connection is lost
-        self._irc_sock.setblocking(False)
-        ready = select.select([self._irc_sock], [], [], self._socket_timeout)
-        ircmsg = ""
-        if ready[0]:
-            try:
-                ircmsg = self._irc_sock.recv(2048).decode("UTF-8")
-            except (OSError, UnicodeDecodeError) as e:
-                logging.error(e)
-                return "ERROR"
-
-        ircmsgs = ircmsg.split('\r\n')
-        if len(ircmsgs) > 1 and not ircmsgs[len(ircmsgs) - 1]:
-            del ircmsgs[len(ircmsgs) - 1]
-        sepmsg = "ircmsg:"
-        for ircmsg in ircmsgs:
-            logging.info("%s %s", sepmsg, "-" *
-                         (TERM_COLUMNS - len(sepmsg) - 30))
-            logging.info(ircmsg)
-        self._irc_sock.setblocking(True)
-        return ircmsgs
+    def receive_msg(self) -> Union[str, List[str]]:
+        return self._receiver.receive_msg()
 
     def get_max_command_length(self) -> int:
         max_length = 0
@@ -281,7 +258,7 @@ class IRCBot:
             self.receive_and_parse_msg()
 
     def receive_and_parse_msg(self) -> None:
-        ircmsgs = self.receivemsg()
+        ircmsgs = self.receive_msg()
         for ircmsg in ircmsgs:
             self.receive_and_parse_irc_msg(ircmsg)
 

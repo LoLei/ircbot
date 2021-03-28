@@ -18,12 +18,13 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, ImageColorGenerator
 
 from src.imageuploader import upload
+from src.sender import Sender
 from src.util import STOPWORDS
 
 
 class Command(ABC):
     # Receiver = Invoker
-    def __init__(self, receiver, sender) -> None:
+    def __init__(self, receiver, sender: Sender) -> None:
         self._receiver = receiver
         self._sender = sender  # TODO: Make this the receiver
         # TODO: Remove old receiver

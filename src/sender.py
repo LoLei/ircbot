@@ -3,7 +3,6 @@ import socket
 import time
 
 
-# TODO: Put other send method that use the irc socket (e.g. JOIN, PING) here
 class Sender:
     def __init__(self, irc_socket: socket.socket,
                  repeated_message_sleep_time: float) -> None:
@@ -15,10 +14,10 @@ class Sender:
         return self._irc_socket
 
     @irc_socket.setter
-    def irc_socket(self, new_socket: socket.socket):
+    def irc_socket(self, new_socket: socket.socket) -> None:
         self._irc_socket = new_socket
 
-    def send_privmsg(self, msg: str, target: str, max_message_length,
+    def send_privmsg(self, msg: str, target: str, max_message_length: int,
                      notice: bool = False) -> bool:
         # TODO: Find way to set max_message_length in the constructor
         #  Not trivial because that value is only set after message have

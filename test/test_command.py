@@ -10,11 +10,10 @@ class CommandBaseTest(unittest.TestCase):
     nick = "test_nick"
     message = "test message"
 
-    def test_help_command(self):
+    def test_help_command(self) -> None:
         mock_bot = IRCBot()
         mock_sender = Sender(irc_socket=mock_bot._irc_sock,
-                             repeated_message_sleep_time=
-                             mock_bot.repeated_message_sleep_time)
+                             repeated_message_sleep_time=mock_bot.repeated_message_sleep_time)
         mock_sender.send_privmsg = MagicMock()
 
         class_under_test = HelpCommand(mock_bot, mock_sender)
