@@ -21,8 +21,8 @@ from src.command import HelpCommand, CommandCommand, AboutCommand, \
     UptimeCommand, UpdogCommand, FrequentWordsCommand, \
     WordCloudCommand, WeekdayCommand, InterjectCommand, \
     CopypastaCommand, ShrugCommand, Command
-from src.receiver import Receiver
-from src.sender import Sender
+from src.receiver.receiver import Receiver
+from src.sender.sender import Sender
 from src.settings import CONFIG
 
 # Misc settings

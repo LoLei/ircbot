@@ -18,7 +18,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, ImageColorGenerator
 
 from src.imageuploader import upload
-from src.sender import Sender
+from src.sender.sender import Sender
 from src.util import STOPWORDS
 
 

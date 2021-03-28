@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from src.command import HelpCommand
 from src.ircbot import IRCBot
-from src.sender import Sender
+from src.sender.sender import Sender
 
 
 class CommandBaseTest(unittest.TestCase):
