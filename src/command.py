@@ -4,7 +4,8 @@ import os
 import re
 import time
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Any
+from pathlib import Path
+from typing import List, Tuple, Union
 
 import copypasta_search as cps
 import matplotlib.pyplot as plt
@@ -16,28 +17,35 @@ from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, ImageColorGenerator
 
-# Own
-import imageuploader
-import util
+from src.imageuploader import upload
+from src.sender.sender import Sender
+from src.util import STOPWORDS
 
 
 class Command(ABC):
+    # Receiver = Invoker
+    def __init__(self, receiver, sender: Sender) -> None:
+        self._receiver = receiver
+        self._sender = sender  # TODO: Make this the receiver
+        # TODO: Remove old receiver
+        # TODO: Put other properties the commands need in their own init methods
+
     @property
     @abstractmethod
-    def helptext_(self):
+    def help_text(self) -> str:
         pass
 
     @abstractmethod
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         pass
 
     @staticmethod
-    def check_arg(incoming_message):
-        query = incoming_message.split(' ', 1)
+    def check_arg(incoming_message: str) -> Union[str, bool]:
         try:
-            query = query[1].strip()
+            query = incoming_message.split(' ', 1)[1].strip()
         except IndexError:
             return False
+
         if query in ['', '*', '\\']:
             return False
         return query
@@ -45,28 +53,26 @@ class Command(ABC):
 
 class HelpCommand(Command):
 
-    helptext_ = "show basic help text"
+    @property
+    def help_text(self) -> str:
+        return "show basic help text"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
-        msg = "Use {0}cmds for all commands, and {0}about for more info.".\
-            format(self.receiver_.command_prefix_)
-        self.receiver_.sendmsg(msg, args[0], notice=True)
+    def execute(self, args: List[str]) -> bool:
+        msg = "Use {0}cmds for all commands, and {0}about for more info.". \
+            format(self._receiver.command_prefix)
+        self._sender.send_privmsg(msg, args[0],
+                                  self._receiver.max_message_length,
+                                  notice=True)
         return True
 
 
 class CommandCommand(Command):
 
-    helptext_ = "[multiline] list available commands and usages"
+    @property
+    def help_text(self) -> str:
+        return "[multiline] list available commands and usages"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         multiline = False
 
@@ -76,58 +82,62 @@ class CommandCommand(Command):
             pass
 
         if multiline:
-            for name in self.receiver_.commands_:
-                msg = self.receiver_.command_prefix_ + name +\
-                    " - " + self.receiver_.commands_[name].helptext_
-                self.receiver_.sendmsg(msg, args[0], notice=True)
-                time.sleep(self.receiver_.repeated_message_sleep_time_/10)
+            for name in self._receiver.commands:
+                msg = self._receiver.command_prefix + name + \
+                      " - " + self._receiver.commands[name].help_text
+                self._sender.send_privmsg(msg, args[0],
+                                          self._receiver.max_message_length,
+                                          notice=True)
+                time.sleep(self._receiver.repeated_message_sleep_time / 10)
         else:
             command_names = ""
-            for name in self.receiver_.commands_:
-                command_names += self.receiver_.command_prefix_ + name + " - "\
-                    + self.receiver_.commands_[name].helptext_ + ' | '
-            self.receiver_.sendmsg(command_names[:-3], args[0], notice=True)
+            for name in self._receiver.commands:
+                command_names += (self._receiver.command_prefix
+                                  + name + " - "
+                                  + self._receiver.commands[name].help_text
+                                  + ' | ')
+            self._sender.send_privmsg(command_names[:-3], args[0],
+                                      self._receiver.max_message_length,
+                                      notice=True)
 
         return True
 
 
 class AboutCommand(Command):
 
-    helptext_ = "show information about me"
+    @property
+    def help_text(self) -> str:
+        return "show information about me"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
-        msg = "I am a smol IRC bot made by " +\
-            self.receiver_.adminname_ +\
-            ". Mention me by name or use " +\
-            self.receiver_.command_prefix_ +\
-            " for commands. " +\
-            "Version " + self.receiver_.version_ +\
-            ". Source: https://git.io/JfJ9B"
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+    def execute(self, args: List[str]) -> bool:
+        msg = "I am a smol IRC bot made by " + \
+              self._receiver.admin_name + \
+              ". Mention me by name or use " + \
+              self._receiver.command_prefix + \
+              " for commands. " + \
+              "Version " + self._receiver.version + \
+              ". Source: https://git.io/JfJ9B"
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class LmCommand(Command):
 
-    helptext_ = "<user> show information about last message of a user"
+    @property
+    def help_text(self) -> str:
+        return "<user> show information about last message of a user"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self.receiver_.sendmsg('I need a name.', self.receiver_.channel_)
+            self._sender.send_privmsg('I need a name.', self._receiver.channel,
+                                      self._receiver.max_message_length)
             return False
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if user_q_res:
@@ -135,35 +145,36 @@ class LmCommand(Command):
             ls = user_q_res[0]['lastseen']
             msg = ("{0}\'s last message: \"{1}\" at {2}. "
                    ).format(user_q_res[0]['name'], lm, ls)
-            self.receiver_.sendmsg(msg, self.receiver_.channel_)
+            self._sender.send_privmsg(msg, self._receiver.channel,
+                                      self._receiver.max_message_length)
         else:
-            self.receiver_.sendmsg(
+            self._sender.send_privmsg(
                 "I haven't encountered this user yet.",
-                self.receiver_.channel_)
+                self._receiver.channel,
+                self._receiver.max_message_length)
 
         return True
 
 
 class SentimentCommand(Command):
 
-    helptext_ = "<text>/<user> analyze sentiment"
+    @property
+    def help_text(self) -> str:
+        return "<text>/<user> analyze sentiment"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self.receiver_.sendmsg('I need a name or some text.',
-                                   self.receiver_.channel_)
+            self._sender.send_privmsg('I need a name or some text.',
+                                      self._receiver.channel,
+                                      self._receiver.max_message_length)
             return False
 
         # Use last message of user if argument is user name,
         # and that name is in the user log
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if user_q_res:
@@ -204,19 +215,18 @@ class SentimentCommand(Command):
 
         msg = msg_natural + " " + msg_textblob + " " + msg_vader
 
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class FrequentWordsCommand(Command):
 
-    helptext_ = "<user> show a user's most used words"
+    @property
+    def help_text(self) -> str:
+        return "<user> show a user's most used words"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         trigger_nick = args[0]
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
@@ -224,13 +234,13 @@ class FrequentWordsCommand(Command):
             name_query = trigger_nick
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self.receiver_.sendmsg(
+            self._sender.send_privmsg(
                 "I haven't encountered this user yet.",
-                self.receiver_.channel_)
+                self._receiver.channel, self._receiver.max_message_length)
             return True
 
         msgs = list(user_q_res[0]['messages'])
@@ -239,8 +249,8 @@ class FrequentWordsCommand(Command):
         name = user_q_res[0]['name']
 
         # Add bot commands to list of stop words
-        stopwords = util.STOPWORDS
-        stopwords.update(self.receiver_.commands_.keys())
+        stopwords = STOPWORDS
+        stopwords.update(self._receiver.commands.keys())
         stopwords.update([name.lower()])
 
         # Build count vectorizer and count top words
@@ -254,9 +264,9 @@ class FrequentWordsCommand(Command):
         top_n = counts[:n]
 
         msg = "({}) Top words (of last {} messages) for {}: {}".format(
-            trigger_nick, self.receiver_.user_db_message_log_size_,
+            trigger_nick, self._receiver.user_db_message_log_size,
             name, self.format_count_list(top_n))
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._sender.send_privmsg(msg, self._receiver.channel, self._receiver.max_message_length)
         return True
 
     @staticmethod
@@ -268,20 +278,18 @@ class FrequentWordsCommand(Command):
     def format_count_list(top_n: List[Tuple[str, int]]) -> str:
         s = ""
         for (w, c) in top_n:
-            s += FrequentWordsCommand\
+            s += FrequentWordsCommand \
                      .insert_zero_width_space(w) + ": " + str(c) + ", "
         return s[:-2]
 
 
 class WordCloudCommand(Command):
 
-    helptext_ = "<user> [title] generate a word cloud for a user"
+    @property
+    def help_text(self) -> str:
+        return "<user> [title] generate a word cloud for a user"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         trigger_nick = args[0]
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
@@ -296,31 +304,34 @@ class WordCloudCommand(Command):
             pass
 
         user_q = Query()
-        user_q_res = self.receiver_.user_db_.search(
+        user_q_res = self._receiver.user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self.receiver_.sendmsg(
+            self._sender.send_privmsg(
                 "I haven't encountered this user yet.",
-                self.receiver_.channel_)
+                self._receiver.channel, self._receiver.max_message_length)
             return True
         name = user_q_res[0]['name']
 
         msg = "({}) Cloud generation for nick {} started...".format(
-                trigger_nick, name)
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+            trigger_nick, name)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
 
         # Get all user messages as a string
         msgs = list(user_q_res[0]['messages'])
         user_text = ' '.join(msgs)
 
         # Add bot commands to list of stop words
-        stopwords = util.STOPWORDS
-        stopwords.update(self.receiver_.commands_.keys())
+        stopwords = STOPWORDS
+        stopwords.update(self._receiver.commands.keys())
         stopwords.update([name, name.lower()])
 
         # Get tux outline image
-        mask = np.array(Image.open("images/tux.png"))
+        module_path = Path(__file__).parent.absolute()
+        tux_path = module_path / "resources" / "tux.png"
+        mask = np.array(Image.open(str(tux_path)))
 
         # Generate wordcloud
         wc = WordCloud(stopwords=stopwords,
@@ -347,138 +358,132 @@ class WordCloudCommand(Command):
         plt.savefig(file_and_path, format="png")
 
         # Upload wordcloud
-        res = imageuploader.upload(file_and_path)
+        res = upload(file_and_path)
 
         os.remove(file_and_path)
 
         msg = "Cloud generated for " + name + ": "
         msg += res['link']
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class TimeCommand(Command):
 
-    helptext_ = "show the time"
+    @property
+    def help_text(self) -> str:
+        return "show the time"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
-        self.receiver_.sendmsg(str(time.time()), self.receiver_.channel_)
+    def execute(self, args: List[str]) -> bool:
+        self._sender.send_privmsg(str(time.time()), self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class DateCommand(Command):
 
-    helptext_ = "show the date"
+    @property
+    def help_text(self) -> str:
+        return "show the date"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
-        self.receiver_.sendmsg(date_str, self.receiver_.channel_)
+        self._sender.send_privmsg(date_str, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class WeekdayCommand(Command):
 
-    helptext_ = "show the weekday"
+    @property
+    def help_text(self) -> str:
+        return "show the weekday"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         datetime.datetime.today().weekday()
         msg = calendar.day_name[datetime.datetime.today().weekday()]
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class UptimeCommand(Command):
 
-    helptext_ = "show my age"
+    @property
+    def help_text(self) -> str:
+        return "show my age"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         time_now = time.time()
-        diff_sec = time_now - self.receiver_.creation_time_
+        diff_sec = time_now - self._receiver.creation_time
         diff_time = datetime.timedelta(seconds=int(diff_sec))
-        self.receiver_.sendmsg(str(diff_time), self.receiver_.channel_)
+        self._sender.send_privmsg(str(diff_time), self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class UpdogCommand(Command):
 
-    helptext_ = "is it me or does it smell like updog in here"
+    @property
+    def help_text(self) -> str:
+        return "is it me or does it smell like updog in here"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = "Nothing much, what's up with you?"
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class InterjectCommand(Command):
 
-    helptext_ = "set people right about GNU/Linux"
+    @property
+    def help_text(self) -> str:
+        return "set people right about GNU/Linux"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
-        msg = self.receiver_.triggers_[' linux'][1]
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+    def execute(self, args: List[str]) -> bool:
+        msg = self._receiver.triggers[' linux'][1]
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class CopypastaCommand(Command):
 
-    helptext_ = "<query> get copypasta based on query"
+    @property
+    def help_text(self) -> str:
+        return "<query> get copypasta based on query"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         incoming_message = args[1]
         query = Command.check_arg(incoming_message)
         if not query:
-            self.receiver_.sendmsg('I need a search term.',
-                                   self.receiver_.channel_)
+            self._sender.send_privmsg('I need a search term.',
+                                      self._receiver.channel,
+                                      self._receiver.max_message_length)
             return False
 
         pasta = cps.get_copypasta(query)
-        pasta = pasta[:self.receiver_.max_message_length_ - 3]
+        pasta = pasta[:self._receiver.max_message_length - 3]
         pasta = pasta.replace('\n', ' ')
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()
         pasta += '...'
-        self.receiver_.sendmsg(pasta, self.receiver_.channel_)
+        self._sender.send_privmsg(pasta, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True
 
 
 class ShrugCommand(Command):
 
-    helptext_ = "make the bot shrug"
+    @property
+    def help_text(self) -> str:
+        return "make the bot shrug"
 
-    # Receiver = Invoker
-    def __init__(self, receiver):
-        self.receiver_ = receiver
-
-    def execute(self, args):
+    def execute(self, args: List[str]) -> bool:
         msg = r"¯\_(ツ)_/¯"
-        self.receiver_.sendmsg(msg, self.receiver_.channel_)
+        self._sender.send_privmsg(msg, self._receiver.channel,
+                                  self._receiver.max_message_length)
         return True

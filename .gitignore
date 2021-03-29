@@ -2,9 +2,11 @@
 *.json
 *.png
 !wctux.png
+!tux.png
 !triggers.json
 !requirements.txt
 .python-version
+config.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
