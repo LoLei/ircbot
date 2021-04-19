@@ -1,8 +1,11 @@
 {
   "distro": [
-    0.05,
+    0.1,
     "ARCH ARCH ARCH ARCH AAAAAAAAARCH",
     "Install gentoo",
+    "Install TempleOS",
+    "Install Hannah Montana Linux",
+    "Install Hannah Montana",
     "Install LFS",
     "Distro? Just write your own operating system..."
   ],
