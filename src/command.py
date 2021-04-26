@@ -354,6 +354,7 @@ class WordCloudCommand(Command):
             plt.title(title, fontsize=36)
 
         # Save on disk for later upload
+        Path('clouds').mkdir(exist_ok=True)
         file_and_path = os.path.join('clouds', name + '.png')
         plt.savefig(file_and_path, format="png")
 
