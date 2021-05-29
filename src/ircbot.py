@@ -24,6 +24,7 @@ from src.command import HelpCommand, CommandCommand, AboutCommand, \
 from src.receiver.receiver import Receiver
 from src.sender.sender import Sender
 from src.settings import CONFIG
+from src.ircmsg import IrcMsg
 
 # Misc settings
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
@@ -76,6 +77,10 @@ class IRCBot:
         self._max_command_length = self.get_max_command_length()
 
         self._creation_time: float = time.time()
+
+    @property
+    def nick(self) -> str:
+        return self._nick
 
     @property
     def command_prefix(self) -> str:
@@ -276,86 +281,91 @@ class IRCBot:
             self._ignoring_messages = False
             return False
 
-    def receive_and_parse_irc_msg(self, ircmsg: str) -> None:
-        if not ircmsg:
-            logging.info("empty ircmsg possibly due to timeout/no connection")
+    def receive_and_parse_irc_msg(self, raw_ircmsg: str) -> None:
+        if not raw_ircmsg:
+            logging.info("empty raw_ircmsg possibly due to timeout/no connection")
             self.connect(reconnect=True)
             time.sleep(self._socket_timeout / 10)
             return
 
-        if ircmsg.find("PRIVMSG") != -1:
+        if raw_ircmsg.find("PRIVMSG") != -1:
             if self.check_if_ignore_messages():
                 return
 
-            name = ircmsg.split('!', 1)[0][1:]
-            try:
-                message = ircmsg.split('PRIVMSG', 1)[1].split(':', 1)[1]
-            except IndexError as e:
-                # TODO: Use logging.exception or traceback module
-                logging.error(e)
+            ircmsg = IrcMsg.from_raw(raw_ircmsg)
+            logging.debug("Parsed IRC message:")
+            logging.debug(ircmsg)
+
+            if ircmsg is None:
+                logging.warning("IRC message parsing failed, see previous log")
+                return
+
+            # Ignore PMs
+            if ircmsg.channel == self.nick:
+                logging.warning("Ignoring PM from: " + ircmsg.name)
                 return
 
             # Put user in data base or update existing user
-            self.handle_user_on_message(name, message)
+            self.handle_user_on_message(ircmsg.name, ircmsg.msg)
 
-            if (name.lower() == self.admin_name.lower() and
-                    message.rstrip() == self._exitcode):
+            if (ircmsg.name.lower() == self.admin_name.lower() and
+                    ircmsg.msg.rstrip() == self._exitcode):
                 self._sender.send_privmsg("cya", self.channel,
                                           self.max_message_length)
                 self._sender.send_quit()
                 return
 
             # Normal user messages/commands
-            if len(name) < self._max_user_name_length:
-                if name in self._bot_bros:
+            if len(ircmsg.name) < self._max_user_name_length:
+                if ircmsg.name in self._bot_bros:
                     if random.random() < 0.01:
                         self._sender.send_privmsg(
-                            "{} is my bot-bro.".format(name),
+                            "{} is my bot-bro.".format(ircmsg.name),
                             self.channel, self.max_message_length)
                         return
 
-                if self.respond_to_trigger(name, message):
+                if self.respond_to_trigger(ircmsg.name, ircmsg.msg):
                     return
 
-                if message.lower().find(self._nick) != -1:
+                if ircmsg.msg.lower().find(self._nick) != -1:
                     if random.random() < 0.25:
                         choice = random.choice(self._responses)
-                        choice = choice.replace("USER", name, 1)
+                        choice = choice.replace("USER", ircmsg.name, 1)
                         self._sender.send_privmsg(choice, self.channel,
                                                   self.max_message_length)
 
-                elif message[:1] == self.command_prefix:
+                elif ircmsg.msg[:1] == self.command_prefix:
                     # No command after command prefix
-                    if len(message.strip()) == 1:
+                    if len(ircmsg.msg.strip()) == 1:
                         return
 
                     time_now = time.time()
                     if ((time_now - self._last_command_time) <
                             self._min_msg_interval):
                         logging.info(
-                            "Too many commands, trigger_user: %s", name)
+                            "Too many commands, trigger_user: %s", ircmsg.name)
                         return
 
                     # Execute command
-                    self.execute_command(name, message)
+                    self.execute_command(ircmsg.name, ircmsg.msg)
                     self._last_command_time = time.time()
 
-        elif ircmsg.find("ERROR") != -1:
-            logging.error(ircmsg)
+        elif raw_ircmsg.find("ERROR") != -1:
+            logging.error(raw_ircmsg)
 
-        elif ircmsg.find("JOIN") != -1:
+        elif raw_ircmsg.find("JOIN") != -1:
             # Grab user meta info similar to USERHOST
-            self._user_meta = ircmsg.split(maxsplit=1)[0]
+            self._user_meta = raw_ircmsg.split(maxsplit=1)[0]
 
             # Calculate max message length once that info is known
             self._max_message_length = self.get_max_message_length()
 
-        elif ircmsg.find("PING :") != -1:
-            self.ping(ircmsg)
+        elif raw_ircmsg.find("PING :") != -1:
+            self.ping(raw_ircmsg)
             self._last_ping_time = time.time()
 
         # PRIVMSG and NOTICE with this are sometimes together
-        if ircmsg.find(":You are now logged in as " + self._nick) != -1:
+        if raw_ircmsg.find(":You are now logged in as " + self._nick) != -1:
             self.join(self.channel)
 
     def respond_to_trigger(self, name: str, message: str) -> bool:
