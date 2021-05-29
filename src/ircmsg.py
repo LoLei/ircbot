@@ -14,7 +14,6 @@ class IrcMsg:
     @staticmethod
     def from_raw(raw: str) -> Optional['IrcMsg']:
         name = raw.split('!', 1)[0][1:]
-        # TODO: Channels with multiple '#'s need extra work
         channel = raw.split('PRIVMSG', 1)[1].split()[0]
 
         try:
