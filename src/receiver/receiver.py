@@ -43,8 +43,7 @@ class Receiver:
             del ircmsgs[len(ircmsgs) - 1]
         sepmsg = "ircmsg:"
         for ircmsg in ircmsgs:
-            log.info("%s %s", sepmsg, "-" *
-                         (self._tc - len(sepmsg) - 30))
+            log.info("%s %s", sepmsg, "-" * (self._tc - len(sepmsg) - 30))
             log.info(ircmsg)
         self._irc_socket.setblocking(True)
         return ircmsgs
