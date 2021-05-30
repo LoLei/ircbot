@@ -1,5 +1,5 @@
 Pillow==8.1.2
-PyYAML==5.3.1
+PyYAML==5.4
 copypasta-search==1.1
 flake8==3.9.0
 imgurpython==1.1.7
