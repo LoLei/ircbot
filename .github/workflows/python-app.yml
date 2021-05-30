@@ -27,10 +27,14 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Set up environment
+      env:
+        IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
+        IMGUR_CLIENT_SECRET: ${{ secrets.IMGUR_CLIENT_SECRET }}
+        ASDF: fdsa
       run: |
         export FOOBAR=barfoo
         [ -z "${FOOBAR}" ] || echo set
-        [ -z "${BARFOO}" ] || echo set
+        [ -z "${HUEHUE}" ] || echo set
         [ -z "${IMGUR_CLIENT_ID}" ] || echo set
         [ -z "${IMGUR_CLIENT_SECRET}" ] || echo set
         envsubst < src/config-template.yaml > src/config.yaml
