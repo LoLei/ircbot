@@ -12,6 +12,7 @@ on:
 jobs:
   build:
 
+    environment: CI
     runs-on: ubuntu-latest
 
     steps:
