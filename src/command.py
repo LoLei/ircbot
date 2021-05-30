@@ -5,7 +5,8 @@ import re
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
+
 
 import copypasta_search as cps
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ from textblob import TextBlob
 from tinydb import Query
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud, ImageColorGenerator
+from tinydb import TinyDB
 
 from src.imageuploader import upload
 from src.sender.sender import Sender
@@ -52,6 +54,11 @@ class Command(ABC):
 
 
 class HelpCommand(Command):
+    def __init__(self, sender: Sender, command_prefix: str,
+                 max_message_length: int) -> None:
+        super().__init__(None, sender)
+        self._command_prefix = command_prefix
+        self._max_message_length = max_message_length
 
     @property
     def help_text(self) -> str:
@@ -59,14 +66,23 @@ class HelpCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         msg = "Use {0}cmds for all commands, and {0}about for more info.". \
-            format(self._receiver.command_prefix)
-        self._sender.send_privmsg(msg, args[0],
-                                  self._receiver.max_message_length,
+            format(self._command_prefix)
+        self._sender.send_privmsg(msg,
+                                  args[0],
+                                  self._max_message_length,
                                   notice=True)
         return True
 
 
 class CommandCommand(Command):
+    def __init__(self, sender: Sender, commands: Dict[str, Command],
+                 command_prefix: str, max_message_length: int,
+                 repeated_message_sleep_time: float) -> None:
+        super().__init__(None, sender)
+        self._commands = commands
+        self._command_prefix = command_prefix
+        self._max_message_length = max_message_length
+        self._repeated_message_sleep_time = repeated_message_sleep_time
 
     @property
     def help_text(self) -> str:
@@ -81,29 +97,41 @@ class CommandCommand(Command):
         except IndexError:
             pass
 
+        self._commands["cmds"] = self
+
         if multiline:
-            for name in self._receiver.commands:
-                msg = self._receiver.command_prefix + name + \
-                      " - " + self._receiver.commands[name].help_text
-                self._sender.send_privmsg(msg, args[0],
-                                          self._receiver.max_message_length,
+            for name in self._commands:
+                msg = self._command_prefix + name + \
+                      " - " + self._commands[name].help_text
+                self._sender.send_privmsg(msg,
+                                          args[0],
+                                          self._max_message_length,
                                           notice=True)
-                time.sleep(self._receiver.repeated_message_sleep_time / 10)
+                time.sleep(self._repeated_message_sleep_time / 10)
         else:
             command_names = ""
-            for name in self._receiver.commands:
-                command_names += (self._receiver.command_prefix
-                                  + name + " - "
-                                  + self._receiver.commands[name].help_text
-                                  + ' | ')
-            self._sender.send_privmsg(command_names[:-3], args[0],
-                                      self._receiver.max_message_length,
+            for name in self._commands:
+                command_names += (self._command_prefix + name +
+                                  " - " +
+                                  self._commands[name].help_text +
+                                  ' | ')
+            self._sender.send_privmsg(command_names[:-3],
+                                      args[0],
+                                      self._max_message_length,
                                       notice=True)
 
         return True
 
 
 class AboutCommand(Command):
+    def __init__(self, sender: Sender, command_prefix: str,
+            max_message_length: int, admin_name: str, version: str, channel: str) -> None:
+        super().__init__(None, sender)
+        self._command_prefix = command_prefix
+        self._max_message_length = max_message_length
+        self._admin_name = admin_name
+        self._version = version
+        self._channel = channel
 
     @property
     def help_text(self) -> str:
@@ -111,18 +139,24 @@ class AboutCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         msg = "I am a smol IRC bot made by " + \
-              self._receiver.admin_name + \
+              self._admin_name + \
               ". Mention me by name or use " + \
-              self._receiver.command_prefix + \
+              self._command_prefix + \
               " for commands. " + \
-              "Version " + self._receiver.version + \
+              "Version " + self._version + \
               ". Source: https://git.io/JfJ9B"
-        self._sender.send_privmsg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
         return True
 
 
 class LmCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str, user_db: TinyDB) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
+        self._user_db = user_db
 
     @property
     def help_text(self) -> str:
@@ -132,31 +166,36 @@ class LmCommand(Command):
         incoming_message = args[1]
         name_query = Command.check_arg(incoming_message)
         if not name_query:
-            self._sender.send_privmsg('I need a name.', self._receiver.channel,
-                                      self._receiver.max_message_length)
+            self._sender.send_privmsg('I need a name.', self._channel,
+                                      self._max_message_length)
             return False
 
         user_q = Query()
-        user_q_res = self._receiver.user_db.search(
+        user_q_res = self._user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if user_q_res:
             lm = user_q_res[0]['lastmessage']
             ls = user_q_res[0]['lastseen']
-            msg = ("{0}\'s last message: \"{1}\" at {2}. "
-                   ).format(user_q_res[0]['name'], lm, ls)
-            self._sender.send_privmsg(msg, self._receiver.channel,
-                                      self._receiver.max_message_length)
+            msg = ("{0}\'s last message: \"{1}\" at {2}. ").format(
+                user_q_res[0]['name'], lm, ls)
+            self._sender.send_privmsg(msg, self._channel,
+                                      self._max_message_length)
         else:
-            self._sender.send_privmsg(
-                "I haven't encountered this user yet.",
-                self._receiver.channel,
-                self._receiver.max_message_length)
+            self._sender.send_privmsg("I haven't encountered this user yet.",
+                                      self._channel,
+                                      self._max_message_length)
 
         return True
 
 
 class SentimentCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str, user_db: TinyDB) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
+        self._user_db = user_db
 
     @property
     def help_text(self) -> str:
@@ -221,6 +260,15 @@ class SentimentCommand(Command):
 
 
 class FrequentWordsCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str, user_db: TinyDB,
+            user_db_message_log_size: int, commands: Dict[str, Command]) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
+        self._user_db = user_db
+        self._user_db_message_log_size = user_db_message_log_size
+        self._commands = commands
 
     @property
     def help_text(self) -> str:
@@ -234,13 +282,13 @@ class FrequentWordsCommand(Command):
             name_query = trigger_nick
 
         user_q = Query()
-        user_q_res = self._receiver.user_db.search(
+        user_q_res = self._user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self._sender.send_privmsg(
-                "I haven't encountered this user yet.",
-                self._receiver.channel, self._receiver.max_message_length)
+            self._sender.send_privmsg("I haven't encountered this user yet.",
+                                      self._channel,
+                                      self._max_message_length)
             return True
 
         msgs = list(user_q_res[0]['messages'])
@@ -250,7 +298,9 @@ class FrequentWordsCommand(Command):
 
         # Add bot commands to list of stop words
         stopwords = STOPWORDS
-        stopwords.update(self._receiver.commands.keys())
+        self._commands["words"] = self
+        self._commands["wordcloud"] = self
+        stopwords.update(self._commands.keys())
         stopwords.update([name.lower()])
 
         # Build count vectorizer and count top words
@@ -264,9 +314,10 @@ class FrequentWordsCommand(Command):
         top_n = counts[:n]
 
         msg = "({}) Top words (of last {} messages) for {}: {}".format(
-            trigger_nick, self._receiver.user_db_message_log_size,
-            name, self.format_count_list(top_n))
-        self._sender.send_privmsg(msg, self._receiver.channel, self._receiver.max_message_length)
+            trigger_nick, self._user_db_message_log_size, name,
+            self.format_count_list(top_n))
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
         return True
 
     @staticmethod
@@ -284,6 +335,14 @@ class FrequentWordsCommand(Command):
 
 
 class WordCloudCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str, user_db: TinyDB,
+            commands: Dict[str, Command]) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
+        self._user_db = user_db
+        self._commands = commands
 
     @property
     def help_text(self) -> str:
@@ -304,20 +363,20 @@ class WordCloudCommand(Command):
             pass
 
         user_q = Query()
-        user_q_res = self._receiver.user_db.search(
+        user_q_res = self._user_db.search(
             user_q.name.matches(name_query, flags=re.IGNORECASE))
 
         if not user_q_res:
-            self._sender.send_privmsg(
-                "I haven't encountered this user yet.",
-                self._receiver.channel, self._receiver.max_message_length)
+            self._sender.send_privmsg("I haven't encountered this user yet.",
+                                      self._channel,
+                                      self._max_message_length)
             return True
         name = user_q_res[0]['name']
 
         msg = "({}) Cloud generation for nick {} started...".format(
             trigger_nick, name)
-        self._sender.send_privmsg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
 
         # Get all user messages as a string
         msgs = list(user_q_res[0]['messages'])
@@ -325,7 +384,9 @@ class WordCloudCommand(Command):
 
         # Add bot commands to list of stop words
         stopwords = STOPWORDS
-        stopwords.update(self._receiver.commands.keys())
+        self._commands["words"] = self
+        self._commands["wordcloud"] = self
+        stopwords.update(self._commands.keys())
         stopwords.update([name, name.lower()])
 
         # Get tux outline image
@@ -334,13 +395,14 @@ class WordCloudCommand(Command):
         mask = np.array(Image.open(str(tux_path)))
 
         # Generate wordcloud
-        wc = WordCloud(stopwords=stopwords,
-                       background_color="white",
-                       mask=mask,
-                       # mode="RGBA",
-                       max_words=5000,
-                       # max_font_size=40
-                       )
+        wc = WordCloud(
+            stopwords=stopwords,
+            background_color="white",
+            mask=mask,
+            # mode="RGBA",
+            max_words=5000,
+            # max_font_size=40
+        )
         wc.generate(user_text.lower())
 
         # Create colormap from image
@@ -365,24 +427,34 @@ class WordCloudCommand(Command):
 
         msg = "Cloud generated for " + name + ": "
         msg += res['link']
-        self._sender.send_privmsg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
         return True
 
 
 class TimeCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
 
     @property
     def help_text(self) -> str:
         return "show the time"
 
     def execute(self, args: List[str]) -> bool:
-        self._sender.send_privmsg(str(time.time()), self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(str(time.time()), self._channel,
+                                  self._max_message_length)
         return True
 
 
 class DateCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
 
     @property
     def help_text(self) -> str:
@@ -391,12 +463,17 @@ class DateCommand(Command):
     def execute(self, args: List[str]) -> bool:
         date_str = datetime.datetime.utcnow().replace(
             tzinfo=datetime.timezone.utc).isoformat(' ')
-        self._sender.send_privmsg(date_str, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(date_str, self._channel,
+                                  self._max_message_length)
         return True
 
 
 class WeekdayCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
 
     @property
     def help_text(self) -> str:
@@ -405,12 +482,18 @@ class WeekdayCommand(Command):
     def execute(self, args: List[str]) -> bool:
         datetime.datetime.today().weekday()
         msg = calendar.day_name[datetime.datetime.today().weekday()]
-        self._sender.send_privmsg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
         return True
 
 
 class UptimeCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str, creation_time: float) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
+        self._creation_time = creation_time
 
     @property
     def help_text(self) -> str:
@@ -418,14 +501,19 @@ class UptimeCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         time_now = time.time()
-        diff_sec = time_now - self._receiver.creation_time
+        diff_sec = time_now - self._creation_time
         diff_time = datetime.timedelta(seconds=int(diff_sec))
-        self._sender.send_privmsg(str(diff_time), self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(str(diff_time), self._channel,
+                                  self._max_message_length)
         return True
 
 
 class UpdogCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
 
     @property
     def help_text(self) -> str:
@@ -433,26 +521,31 @@ class UpdogCommand(Command):
 
     def execute(self, args: List[str]) -> bool:
         msg = "Nothing much, what's up with you?"
-        self._sender.send_privmsg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
         return True
 
 
 class InterjectCommand(Command):
+    def __init__(self, sender: Sender, 
+            max_message_length: int, channel: str, triggers: Dict[str, List]) -> None:
+        super().__init__(None, sender)
+        self._max_message_length = max_message_length
+        self._channel = channel
+        self._triggers = triggers
 
     @property
     def help_text(self) -> str:
         return "set people right about GNU/Linux"
 
     def execute(self, args: List[str]) -> bool:
-        msg = self._receiver.triggers[' linux'][1]
-        self._sender.send_privmsg(msg, self._receiver.channel,
-                                  self._receiver.max_message_length)
+        msg = self._triggers[' linux'][1]
+        self._sender.send_privmsg(msg, self._channel,
+                                  self._max_message_length)
         return True
 
 
 class CopypastaCommand(Command):
-
     @property
     def help_text(self) -> str:
         return "<query> get copypasta based on query"
@@ -478,7 +571,6 @@ class CopypastaCommand(Command):
 
 
 class ShrugCommand(Command):
-
     @property
     def help_text(self) -> str:
         return "make the bot shrug"

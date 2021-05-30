@@ -72,11 +72,12 @@ class IRCBot:
         self._sender = Sender(self._irc_sock, self.repeated_message_sleep_time)
         self._receiver = Receiver(self._irc_sock, self._socket_timeout)
 
+        self._creation_time: float = time.time()
+
         # Commands (must be after sender, because commands need the sender)
         self._commands: Dict[str, Command] = self.create_commands(self._sender)
         self._max_command_length = self.get_max_command_length()
 
-        self._creation_time: float = time.time()
 
     @property
     def nick(self) -> str:
@@ -127,23 +128,32 @@ class IRCBot:
         return self._max_message_length
 
     def create_commands(self, sender: Sender) -> Dict[str, Command]:
-        return {
-            'about': AboutCommand(self, sender),
-            'cmds': CommandCommand(self, sender),
+        commands = {
+            'about': AboutCommand(sender, self.command_prefix, self.max_message_length, self.admin_name, self.version,
+                self.channel),
             'copypasta': CopypastaCommand(self, sender),
-            'date': DateCommand(self, sender),
-            'help': HelpCommand(self, sender),
-            'interject': InterjectCommand(self, sender),
-            'lastmessage': LmCommand(self, sender),
-            'sentiment': SentimentCommand(self, sender),
+            'date': DateCommand(sender, self.max_message_length, self.channel),
+            'help': HelpCommand(sender, self.command_prefix, self.max_message_length),
+            'interject': InterjectCommand(sender, self.max_message_length, self.channel, self.triggers),
+            'lastmessage': LmCommand(sender, self.max_message_length, self.channel, self.user_db),
+            'sentiment': SentimentCommand(sender, self.max_message_length, self.channel, self.user_db),
             'shrug': ShrugCommand(self, sender),
-            'time': TimeCommand(self, sender),
-            'updog': UpdogCommand(self, sender),
-            'uptime': UptimeCommand(self, sender),
-            'weekday': WeekdayCommand(self, sender),
-            'wordcloud': WordCloudCommand(self, sender),
-            'words': FrequentWordsCommand(self, sender),
+            'time': TimeCommand(sender, self.max_message_length, self.channel),
+            'updog': UpdogCommand(sender, self.max_message_length, self.channel),
+            'uptime': UptimeCommand(sender, self.max_message_length, self.channel, self.creation_time),
+            'weekday': WeekdayCommand(sender, self.max_message_length, self.channel),
         }
+        commands['words'] = FrequentWordsCommand(sender,
+                                                 self.max_message_length,
+                                                 self.channel, self.user_db,
+                                                 self.user_db_message_log_size,
+                                                 commands)
+        commands['wordcloud'] = WordCloudCommand(sender, self.max_message_length, self.channel, self.user_db, commands)
+        commands['cmds'] = CommandCommand(self._sender, commands,
+                                          self.command_prefix,
+                                          self.max_message_length,
+                                          self.repeated_message_sleep_time)
+        return commands
 
     def _reset_socket(self) -> None:
         self._irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -14,9 +14,10 @@ class CommandBaseTest(unittest.TestCase):
         mock_bot = IRCBot()
         mock_sender = Sender(irc_socket=mock_bot._irc_sock,
                              repeated_message_sleep_time=mock_bot.repeated_message_sleep_time)
-        mock_sender.send_privmsg = MagicMock()
+        mock_sender.send_privmsg = MagicMock() # type: ignore
 
-        class_under_test = HelpCommand(mock_bot, mock_sender)
+        class_under_test = HelpCommand(mock_sender, mock_bot.command_prefix,
+                                       mock_bot.max_message_length)
         class_under_test.execute([self.nick, self.message])
 
         mock_sender.send_privmsg.assert_called_with(
