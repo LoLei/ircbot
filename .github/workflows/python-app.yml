@@ -28,6 +28,8 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Set up environment
       run: |
+        [ -z "${IMGUR_CLIENT_ID}" ] || echo set
+        [ -z "${IMGUR_CLIENT_SECRET}" ] || echo set
         envsubst < src/config-template.yaml > src/config.yaml
     - name: Lint with flake8
       run: |
@@ -37,4 +39,6 @@ jobs:
         mypy src test || echo "mypy found error! TODO: Fix so pipeline is green"
     - name: Test with pytest
       run: |
+        [ -z "${IMGUR_CLIENT_ID}" ] || echo set
+        [ -z "${IMGUR_CLIENT_SECRET}" ] || echo set
         python -m pytest
