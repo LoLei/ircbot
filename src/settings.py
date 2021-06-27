@@ -1,5 +1,4 @@
 import os
-import sys
 from typing import Dict
 
 CONFIG: Dict[str, str] = dict()
@@ -19,5 +18,4 @@ CONFIG['imgur_client_secret'] = os.environ.get("IMGUR_CLIENT_SECRET", "")
 if "CI" not in os.environ:
     empties = [v[0] for v in CONFIG.items() if v[1] == ""]
     if empties:
-        raise EnvironmentError(f"Unset environment variables: {empties}");
-
+        raise EnvironmentError(f"Unset environment variables: {empties}")
