@@ -26,12 +26,13 @@ jobs:
         sudo apt-get install gettext-base -y
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Set up environment
-      env:
-        IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
-        IMGUR_CLIENT_SECRET: ${{ secrets.IMGUR_CLIENT_SECRET }}
+    - name: Setup environment
       run: |
-        envsubst < src/config-template.yaml > src/config.yaml
+        export IMGUR_CLIENT_ID=${{ secrets.IMGUR_CLIENT_ID }}
+        export IMGUR_CLIENT_SECRET=${{ secrets.IMGUR_CLIENT_SECRET }}
+
+        echo "IMGUR_CLIENT_ID=$IMGUR_CLIENT_ID" >> $GITHUB_ENV
+        echo "IMGUR_CLIENT_SECRET=$IMGUR_CLIENT_SECRET" >> $GITHUB_ENV
     - name: Lint with flake8
       run: |
         flake8 .
