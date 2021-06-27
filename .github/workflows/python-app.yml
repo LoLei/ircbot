@@ -30,9 +30,11 @@ jobs:
       run: |
         export IMGUR_CLIENT_ID=${{ secrets.IMGUR_CLIENT_ID }}
         export IMGUR_CLIENT_SECRET=${{ secrets.IMGUR_CLIENT_SECRET }}
+        export CI=1
 
         echo "IMGUR_CLIENT_ID=$IMGUR_CLIENT_ID" >> $GITHUB_ENV
         echo "IMGUR_CLIENT_SECRET=$IMGUR_CLIENT_SECRET" >> $GITHUB_ENV
+        echo "CI=$CI" >> $GITHUB_ENV
     - name: Lint with flake8
       run: |
         flake8 .
