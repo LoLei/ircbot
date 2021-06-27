@@ -20,7 +20,8 @@ Start it once on your server and use the commands within your IRC client.
 ```
 ./start.py
 ```
-Configure settings (nick, server, channel, command prefix, etc.) in `config.yaml`.
+Configure settings (nick, server, channel, command prefix, etc.) in `.env`.  
+(This file isn't read but the environment variables must be set. Source them via e.g. `export $(cat .env | xargs)`.)
 
 ### Client
 ```
@@ -38,9 +39,15 @@ Configure settings (nick, server, channel, command prefix, etc.) in `config.yaml
 ```
 Only the last 1000 messages of users are stored. This parameter can be changed.
 
-## Installation
-```
-git clone https://github.com/LoLei/ircbot ~/git/ircbot
+## Container
+```sh
+# Prepare
+docker pull ghcr.io/lolei/ircbot:<tag>
+# or
+docker build -f Containerfile . -t ghcr.io/lolei/ircbot:<tag>
+
+# Run
+docker run --env-file .env.local -v $(pwd)/storage:/app/storage ghcr.io/lolei/ircbot:<tag>
 ```
 
 ## Example User Word Cloud
