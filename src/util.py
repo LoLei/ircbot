@@ -18,7 +18,7 @@ def get_stopwords() -> Set[str]:
 
     # custom stopwords
     # from config and/or bot commands
-    user_stopwords = CONFIG['stopwords']
+    user_stopwords = CONFIG['stopwords'].split(',')
     stopwords.update(user_stopwords)
 
     # Adapt for how wordcloud and sklearn CountVectorizer handle stop words
