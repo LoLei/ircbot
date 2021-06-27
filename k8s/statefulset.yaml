@@ -35,17 +35,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: ircbot-configmap
-          env:
-            - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: ircbot-secret
-                  key: PASSWORD
-            - name: IMGUR_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: ircbot-secret
-                  key: IMGUR_CLIENT_SECRET
+            - secretRef:
+                name: ircbot-secret
           volumeMounts:
             - name: ircbot
               mountPath: /app/storage
