@@ -12,6 +12,7 @@ import string
 import threading
 import time
 from typing import Tuple, List, Dict, Union
+from pathlib import Path
 
 from tinydb import TinyDB, Query
 
@@ -43,10 +44,10 @@ class IRCBot:
         self._nick: str = CONFIG['bot_nick']
         self._password: str = CONFIG['password']
         self._admin_name: str = CONFIG['admin_name']
-        self._exitcode: str = CONFIG['exit_code'].replace('BOTNICK', self._nick, 1)
+        self._exitcode: str = CONFIG['exit_code']
         self._command_prefix: str = CONFIG['command_prefix']
-        self._user_db_message_log_size: int = CONFIG['user_db_message_log_size']
-        self._user_db: TinyDB = TinyDB('users.json')
+        self._user_db_message_log_size: int = int(CONFIG['user_db_message_log_size'])
+        self._user_db: TinyDB = TinyDB(IRCBot.get_storage_dir_file('users.json'))
 
         # Default memvars
         self._max_user_name_length = 17  # Freenode, need to check snoonet
@@ -143,6 +144,10 @@ class IRCBot:
             'words': FrequentWordsCommand(self, sender),
         }
 
+    @staticmethod
+    def get_storage_dir_file(filename: str) -> str:
+        return str(Path(BOT_PATH).parent / 'storage' / filename)
+
     def _reset_socket(self) -> None:
         self._irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sender.irc_socket = self._irc_sock
@@ -203,7 +208,7 @@ class IRCBot:
                 len("\n"))
 
     def get_responses(self) -> List[str]:
-        with open(os.path.join(BOT_PATH, 'responses.txt')) as f:
+        with open(os.path.join(IRCBot.get_storage_dir_file('responses.txt'))) as f:
             responses = f.readlines()
         responses = [r.strip() for r in responses]
         responses = [r.replace("ADMIN", self.admin_name, 1) for r in responses]
@@ -212,13 +217,13 @@ class IRCBot:
         return responses
 
     def get_bot_bros(self) -> List[str]:
-        with open(os.path.join(BOT_PATH, 'bots.txt')) as f:
+        with open(os.path.join(IRCBot.get_storage_dir_file('bots.txt'))) as f:
             bots = f.readlines()
         bots = [b.strip() for b in bots]
         return bots
 
     def get_triggers(self) -> Dict[str, List]:
-        with open(os.path.join(BOT_PATH, 'triggers.json')) as f:
+        with open(os.path.join(IRCBot.get_storage_dir_file('triggers.json'))) as f:
             triggers = json.load(f)
 
         # Replace placeholders in file with variables
@@ -292,7 +297,6 @@ class IRCBot:
 
             ircmsg = IrcMsg.from_raw(raw_ircmsg)
             logging.debug("Parsed IRC message:")
-            logging.debug(ircmsg)
 
             if ircmsg is None:
                 logging.warning("IRC message parsing failed, see previous log")

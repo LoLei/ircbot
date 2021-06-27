@@ -14,6 +14,7 @@ PREFIX=''
 # use $VER
 FILES=(
   'src/ircbot.py;__version__ = "VERSION"' # Simple usage
+  'k8s/statefulset.yaml;image: ghcr.io\/lolei\/ircbot:VERSION'
   # "package.json;\"version\": \"$PREFIX$VER\"" # add the version replace string and version prefix from variables
 )
 

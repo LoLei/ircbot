@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ircbot-configmap
+data:
+  SERVER: irc.snoonet.org
+  CHANNEL: "#linuxmasterrace"
+  BOT_NICK: muh_bot
+  ADMIN_NAME: Asmodean
+  EXIT_CODE: Be gone muh_bot
+  COMMAND_PREFIX: '\'
+  USER_DB_MESSAGE_LOG_SIZE: "1000"
+  STOPWORDS: "http,https,www"
+  IMGUR_CLIENT_ID: b0825933e46357f
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ircbot-sts
+spec:
+  serviceName: "ircbot-svc"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ircbot
+  template:
+    metadata:
+      labels:
+        app: ircbot
+    spec:
+      containers:
+        - name: ircbot
+          image: ghcr.io/lolei/ircbot:1.2.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: ircbot-configmap
+          env:
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ircbot-secret
+                  key: PASSWORD
+            - name: IMGUR_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ircbot-secret
+                  key: IMGUR_CLIENT_SECRET
+          volumeMounts:
+            - name: ircbot
+              mountPath: /app/storage
+  volumeClaimTemplates:
+    - metadata:
+        name: ircbot
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: do-block-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ircbot-svc
+  labels:
+    app: ircbot
+spec:
+  clusterIP: None
+  selector:
+    app: ircbot
