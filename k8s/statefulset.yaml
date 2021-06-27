@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: ircbot
-          image: ghcr.io/lolei/ircbot:1.2.0
+          image: ghcr.io/lolei/ircbot:1.2.1
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
