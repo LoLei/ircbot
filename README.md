@@ -1,5 +1,5 @@
 # ircbot
-~Small~ bloated IRC bot :robot:
+~~Small~~ bloated IRC bot :robot:
 
 Tested with [irc.snoonet.org](https://snoonet.org/)
 
@@ -49,6 +49,11 @@ docker build -f Containerfile . -t ghcr.io/lolei/ircbot:<tag>
 # Run
 docker run --env-file .env.local -v $(pwd)/storage:/app/storage ghcr.io/lolei/ircbot:<tag>
 ```
+
+## Deployment
+The bot can either be run from the git repo itself, as a container with e.g. docker or docker-compose, or within Kubernetes.  
+It has been deployed for a long time (> 1 year) on a Raspberry Pi (therefore it works on ARM, which is made sure by some version requirements),
+and it is currently deployed on Kubernetes. (See [`k8s/`](https://github.com/LoLei/ircbot/tree/master/k8s))
 
 ## Example User Word Cloud
 <p align="center">
