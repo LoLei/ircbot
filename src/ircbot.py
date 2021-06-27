@@ -11,7 +11,6 @@ import socket
 import string
 import threading
 import time
-from datetime import datetime
 from typing import Tuple, List, Dict, Union
 
 from tinydb import TinyDB, Query
@@ -28,8 +27,7 @@ from src.ircmsg import IrcMsg
 
 # Misc settings
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                    filename=datetime.now().strftime(
-                        '%Y_%m_%d.log'), level=logging.DEBUG)
+                    level=logging.DEBUG)
 BOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
