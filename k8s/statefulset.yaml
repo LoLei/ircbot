@@ -40,6 +40,13 @@ spec:
           volumeMounts:
             - name: ircbot
               mountPath: /app/storage
+            - name: ircbot-praw-config
+              mountPath: /root/.config
+              readOnly: true
+      volumes:
+      - name: ircbot-praw-config
+        secret:
+          secretName: ircbot-praw-config-secret
   volumeClaimTemplates:
     - metadata:
         name: ircbot
