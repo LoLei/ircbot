@@ -466,13 +466,26 @@ class CopypastaCommand(Command):
                                       self._receiver.max_message_length)
             return False
 
-        pasta = cps.get_copypasta(query)
-        pasta = pasta[:self._receiver.max_message_length - 3]
+        pasta_original, url_original = cps.get_copypasta(query)
+        url = url_original if url_original else ''
+
+        # Send pasta and url immediadetly if they fit in the max length
+        # + 1 for the space
+        if len(pasta_original) <= self._receiver.max_message_length + len(url) + 1:
+            self._sender.send_privmsg(f"{pasta_original} {url}", self._receiver.channel,
+                                      self._receiver.max_message_length)
+            return True
+
+        # Truncate pasta otherwise
+        # + 2 for the space and the …
+        # + 10 as buffer
+        pasta = pasta_original[:self._receiver.max_message_length - (len(url) + 2 + 10)]
         pasta = pasta.replace('\n', ' ')
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()
-        pasta += '...'
-        self._sender.send_privmsg(pasta, self._receiver.channel,
+        pasta += '…'
+
+        self._sender.send_privmsg(f"{pasta} {url}", self._receiver.channel,
                                   self._receiver.max_message_length)
         return True
 
