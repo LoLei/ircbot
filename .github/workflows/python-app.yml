@@ -32,12 +32,14 @@ jobs:
         export IMGUR_CLIENT_SECRET=${{ secrets.IMGUR_CLIENT_SECRET }}
         export praw_client_id=${{ secrets.PRAW_CLIENT_ID }}
         export praw_client_secret=${{ secrets.PRAW_CLIENT_SECRET }}
+        export praw_client_user_agent=${{ secrets.PRAW_CLIENT_USER_AGENT }}
         export CI=1
 
         echo "IMGUR_CLIENT_ID=$IMGUR_CLIENT_ID" >> $GITHUB_ENV
         echo "IMGUR_CLIENT_SECRET=$IMGUR_CLIENT_SECRET" >> $GITHUB_ENV
         echo "praw_client_id=$praw_client_id" >> $GITHUB_ENV
         echo "praw_client_secret=$praw_client_secret" >> $GITHUB_ENV
+        echo "praw_client_user_agent=$praw_client_user_agent" >> $GITHUB_ENV
         echo "CI=$CI" >> $GITHUB_ENV
     - name: Lint with flake8
       run: |
