@@ -39,6 +39,9 @@ jobs:
         echo "praw_client_id=$praw_client_id" >> $GITHUB_ENV
         echo "praw_client_secret=$praw_client_secret" >> $GITHUB_ENV
         echo "CI=$CI" >> $GITHUB_ENV
+
+        echo 1
+        echo $GITHUB_ENV
     - name: Lint with flake8
       run: |
         flake8 .
