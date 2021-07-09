@@ -1,5 +1,5 @@
 __author__ = "Lorenz Leitner"
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 __license__ = "MIT"
 
 import collections
