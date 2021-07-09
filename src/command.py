@@ -478,8 +478,8 @@ class CopypastaCommand(Command):
 
         # Truncate pasta otherwise
         # + 2 for the space and the …
-        # + 10 as buffer
-        pasta = pasta_original[:self._receiver.max_message_length - (len(url) + 2 + 10)]
+        # + 20 as buffer
+        pasta = pasta_original[:self._receiver.max_message_length - (len(url) + 2 + 20)]
         pasta = pasta.replace('\n', ' ')
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()

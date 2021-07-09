@@ -38,7 +38,7 @@ class CommandBaseTest(unittest.TestCase):
         class_under_test = CopypastaCommand(mock_bot, mock_sender)
         class_under_test.execute([self.nick, "copypasta I'd just like to interject for a moment"])
 
-        expected_output = "I'd just like to interject for a moment. What you’re referring to… https://redd.it/ocnvke"
+        expected_output = "I'd just like to interject for a moment. What you’re ref… https://redd.it/ocnvke"
         self.assertLessEqual(len(expected_output), 100)
         mock_sender.send_privmsg.assert_called_with(
             expected_output, '#test', mock_bot.max_message_length)
