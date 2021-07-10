@@ -9,7 +9,7 @@
     "Install LFS",
     "Distro? Just write your own operating system..."
   ],
-  "arch": [
+  " arch": [
     0.01,
     "I use Arch btw",
     "Btw I use Arch"
@@ -56,12 +56,13 @@
     1,
     "alacritty is the best aboftybot"
   ],
-  "rust": [
-    0.1,
+  " rust": [
+    0.01,
     "rust good",
     "rust best",
     "rust > all",
     "RIIR",
-    "Use rust or don't use anything at all"
+    "Use rust or don't use anything at all",
+    "Is rust overhyped? Definitely not."
   ]
 }

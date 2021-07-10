@@ -12,6 +12,8 @@ data:
   USER_DB_MESSAGE_LOG_SIZE: "1000"
   STOPWORDS: "http,https,www"
   IMGUR_CLIENT_ID: b0825933e46357f
+  COPYPASTA_BUFFER_SHORT: "10"
+  COPYPASTA_BUFFER_LONG: "20"
 ---
 apiVersion: apps/v1
 kind: StatefulSet
