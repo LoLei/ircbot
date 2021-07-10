@@ -470,28 +470,26 @@ class CopypastaCommand(Command):
         url = url_original if url_original else ''
 
         # Send pasta and url immediately if they fit in the max length
-        # + 1 for the space
-        # + 10 as buffer
-        if (len(pasta_original) <=
-                self._receiver.max_message_length + len(url) + 1 +
-                int(os.environ.get("COPYPASTA_BUFFER_SHORT", 10))):
-            self._sender.send_privmsg(f"{pasta_original} {url}",
-                                      self._receiver.channel,
+        if len(pasta_original) <= self._receiver.max_message_length:
+            self._sender.send_privmsg(pasta_original, self._receiver.channel,
                                       self._receiver.max_message_length)
+            if url:
+                self._sender.send_privmsg(url, self._receiver.channel,
+                                          self._receiver.max_message_length)
             return True
 
         # Truncate pasta otherwise
-        # + 2 for the space and the …
-        # + 20 as buffer
-        pasta = pasta_original[:self._receiver.max_message_length - (
-            len(url) + 2 + int(os.environ.get("COPYPASTA_BUFFER_LONG", 20)))]
+        pasta = pasta_original[:self._receiver.max_message_length - 1]
         pasta = pasta.replace('\n', ' ')
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()
         pasta += '…'
 
-        self._sender.send_privmsg(f"{pasta} {url}", self._receiver.channel,
+        self._sender.send_privmsg(pasta, self._receiver.channel,
                                   self._receiver.max_message_length)
+        if url:
+            self._sender.send_privmsg(url, self._receiver.channel,
+                                      self._receiver.max_message_length)
         return True
 
 
