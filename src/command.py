@@ -479,11 +479,11 @@ class CopypastaCommand(Command):
             return True
 
         # Truncate pasta otherwise
-        pasta = pasta_original[:self._receiver.max_message_length - 1]
+        pasta = pasta_original[:self._receiver.max_message_length - 3]
         pasta = pasta.replace('\n', ' ')
         pasta = ' '.join(pasta.split())
         pasta = pasta.strip()
-        pasta += '…'
+        pasta += '...'
 
         self._sender.send_privmsg(pasta, self._receiver.channel,
                                   self._receiver.max_message_length)

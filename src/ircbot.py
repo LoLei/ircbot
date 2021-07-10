@@ -203,7 +203,7 @@ class IRCBot:
         return max_length
 
     def get_max_message_length(self) -> int:
-        irc_max_msg_len = 512
+        irc_max_msg_len = 510
         return irc_max_msg_len - (
                 len(self._user_meta) +
                 len("PRIVMSG ") +
