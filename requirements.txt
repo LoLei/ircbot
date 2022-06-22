@@ -5,7 +5,7 @@ flake8==3.9.0
 imgurpython==1.1.7
 matplotlib==3.3.1
 mypy==0.812
-numpy==1.20.1
+numpy==1.22.0
 pytest==6.2.2
 scikit-learn==0.20.2
 textblob==0.15.3
